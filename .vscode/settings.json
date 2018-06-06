@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "network.h": "c",
+        "*.ipp": "c",
+        "system_error": "c",
+        "array": "c"
+    }
+}

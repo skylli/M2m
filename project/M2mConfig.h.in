@@ -1,0 +1,3 @@
+// will creat head file for source code 
+#define M2M_VERSION_MAJOR  @M2M_VERSION_MAJOR@
+#define M2M_VERSION_MINOR  @M2M_VERSION_MAJOR@
