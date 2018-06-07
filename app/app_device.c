@@ -38,7 +38,7 @@ int main(int argc, char **argv){
 
     /******** get parameter *************/
     if(argc < 3){
-       m2m_printf("Need more parameter/n please input : %s <device's id> <port> <secret key> <server's host> <server's port>\n",argv[0]);
+       m2m_printf("Need more parameter/n please input : %s <device's id> <port> <local key> <server's id> <server's host> <server's port>\n",argv[0]);
        return -1;
     }
 
@@ -63,10 +63,11 @@ int main(int argc, char **argv){
     keylen = strlen(argv[3]);
     keylen = (keylen>16)?16:keylen;
     mcpy( p_key, argv[3], keylen);
-    // get server host
+    
     if(argc >=6){
-        
+    // get server id
         STR_2_INT_ARRAY( s_id.id, argv[4], strlen(argv[4]));
+    // get server host
         p_server_host = argv[5];
         sport = atoi(argv[6]);
         mcpy( &dconf.host_id,&s_id, sizeof(M2M_id_T));
@@ -94,6 +95,7 @@ int main(int argc, char **argv){
 }
 
 void dev_callback(int code,M2M_packet_T **pp_ack_data,M2M_packet_T *p_recv_data,void *p_arg){
+    m2m_log_debug("callback:: receive code = %d\n", code);
 
     switch(code){
         case M2M_REQUEST_BROADCAST: 
@@ -111,6 +113,10 @@ void dev_callback(int code,M2M_packet_T **pp_ack_data,M2M_packet_T *p_recv_data,
             }
             break;
         default:
+            if( p_recv_data && p_recv_data->len > 0 && p_recv_data->p_data){
+                m2m_log("receive data : %s\n",p_recv_data->p_data);
+                m2m_bytes_dump("recv dump : ",p_recv_data->p_data, p_recv_data->len);
+            }
             break;
     }
 

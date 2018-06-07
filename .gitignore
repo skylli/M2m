@@ -1,5 +1,5 @@
-bin/
+bin/*
 vscode/
 vscode-root/
-build/
-lib/
+build/*
+lib/*
