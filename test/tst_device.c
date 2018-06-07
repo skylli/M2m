@@ -6,6 +6,7 @@
 #include "m2m.h"
 #include "m2m_api.h"
 #include "m2m_log.h"
+#include "util.h"
 #include "config.h"
 #include "app_implement.h"
 
@@ -40,7 +41,8 @@ void main(void){
     conf.do_relay = 0;
     ret = m2m_int(&conf);
 
-    m2m.net = m2m_net_creat( &device_id,TST_DEV_LOCAL_PORT, strlen(TST_DEV_LOCAL_KEY),TST_DEV_LOCAL_KEY,TST_DEV_SERVER_HOST, TST_DEV_SERVER_PORT,dev_callback,NULL);
+    m2m.net = m2m_net_creat( &device_id,TST_DEV_LOCAL_PORT, strlen(TST_DEV_LOCAL_KEY),TST_DEV_LOCAL_KEY,\
+                            TST_DEV_SERVER_HOST, TST_DEV_SERVER_PORT,(m2m_func)dev_callback,NULL);
     if( m2m.net == 0 ){
         m2m_printf(" creat network failt !!\n");
         return ;
@@ -57,8 +59,8 @@ void dev_callback(int code,M2M_packet_T **pp_ack_data,M2M_packet_T *p_recv_data,
     switch(code){
         case M2M_REQUEST_BROADCAST: 
             {
-                 M2M_packet_T *p_ack = mmalloc(sizeof(M2M_packet_T));
-                 p_ack->p_data = mmalloc( sizeof( M2M_id_T) + 1 );
+                 M2M_packet_T *p_ack = (M2M_packet_T*)mmalloc(sizeof(M2M_packet_T));
+                 p_ack->p_data = (u8*)mmalloc( sizeof( M2M_id_T) + 1 );
                  p_ack->len = sizeof( M2M_id_T);
                  mcpy( (u8*)p_ack->p_data, (u8*)device_id.id, sizeof(M2M_id_T) );
                  

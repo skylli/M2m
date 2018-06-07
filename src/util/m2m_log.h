@@ -80,7 +80,7 @@ u8 m2m_record_level_get();
 
 #define m2m_assert(_arg, _return) do{if((_arg)==0) \
         {m2m_printf("%s %d, assert failed!\r\n",__func__, __LINE__); \
-            return(_return);}}while(0)
+            return (_return);}}while(0)
 
 /* log api provided */
 void m2m_record_init(int level);

@@ -103,7 +103,7 @@ size_t m2m_session_creat(size_t net,M2M_id_T *p_id,u8 *p_host,int port, int key_
     mmemset( (u8*)&arg, 0, sizeof(Net_Args_T));
     mcpy( (u8*) &arg.remote_id, (u8*)p_id,sizeof(M2M_id_T));
     
-    m2m_log_debug("net <%p> creating session...",net);
+    m2m_log_debug("net <%p> creating session...", (void*)net);
 
     // get ip or port.
     if( !p_host || !p_key){
@@ -126,9 +126,9 @@ size_t m2m_session_creat(size_t net,M2M_id_T *p_id,u8 *p_host,int port, int key_
     arg.p_data = NULL;
 
     if( p_n->ioctl_session )
-        p_s = p_n->ioctl_session( M2M_NET_CMD_SESSION_CREAT, &arg,0);
+        p_s = (Session_T*) p_n->ioctl_session( M2M_NET_CMD_SESSION_CREAT, &arg,0);
     
-    m2m_log_debug(" net <%p> creat session (%[).\n", net,p_s);
+    m2m_log_debug(" net <%p> creat session (%p).\n", (void*)net,p_s);
     return (size_t)p_s;
 }
 // 销毁 session
@@ -147,7 +147,7 @@ M2M_Return_T m2m_session_destory(M2M_T *p_m2m){
     arg.p_net = (Net_T*) p_m2m->net;
     arg.p_s = (Session_T*) p_m2m->session;
     
-    m2m_log_debug(" net <%p> session (%p) have been destory.\n", arg.p_s);
+    m2m_log_debug(" net <%p> session (%p) have been destory.\n", (void*)p_m2m->net, arg.p_s);
     if( arg.p_net->ioctl_session )
         return ( arg.p_net->ioctl_session(M2M_NET_CMD_SESSION_DESTORY,&arg,0) );
     else 
@@ -167,7 +167,7 @@ M2M_Return_T m2m_session_token_update(M2M_T *p_m2m,m2m_func func, void *p_args){
     mmemset( (u8*)&arg, 0, sizeof(Net_Args_T));
     _NET_ARG_CPY(arg,p_m2m,func,p_args);
     
-    m2m_log_debug("session (%p) updateing remote token ...",p_m2m->session );
+    m2m_log_debug("session (%p) updateing remote token ...", (void*)p_m2m->session );
     if(arg.p_net->ioctl_session)
         return ( arg.p_net->ioctl_session(M2M_NET_CMD_SESSION_TOKEN_UPDATE,&arg,0) );
     else 
@@ -200,7 +200,7 @@ M2M_Return_T m2m_session_secret_set(M2M_T *p_m2m,int len,u8 *p_data,m2m_func fun
     mcpy((u8*)p_enc->key, (u8*)p_data,len);
 
     
-    m2m_log_debug("session (%p)updateing session secret key...",p_m2m->session);
+    m2m_log_debug("session (%p)updateing session secret key...", (void*)p_m2m->session);
     arg.len = (u16)(sizeof(Enc_T) + len);
     arg.p_data = p;
     if(arg.p_net->ioctl_session)
@@ -273,7 +273,7 @@ M2M_Return_T m2m_session_data_send(M2M_T *p_m2m,int len,u8 *p_data,m2m_func func
     mmemset((u8*)&arg,0,sizeof(Net_Args_T));
     _NET_ARG_CPY(arg,p_m2m,func,p_args);
     
-    m2m_log_debug("session (%p) sending data to remote.",p_m2m->session);
+    m2m_log_debug("session (%p) sending data to remote.", (void*)p_m2m->session);
 
     arg.len = len;
     arg.p_data = p_data;

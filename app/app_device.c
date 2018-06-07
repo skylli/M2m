@@ -6,6 +6,7 @@
 ***********************************************************************
 **********************************************************************/
 
+#include <stdlib.h>
 #include <string.h>
 #include "m2m_type.h"
 #include "m2m.h"
@@ -84,7 +85,7 @@ int main(int argc, char **argv){
     }
 
     m2m_int(&dconf);
-    dm2m.net = m2m_net_creat(&d_id, dport, 16, p_key, p_server_host, sport,dev_callback, NULL);
+    dm2m.net = m2m_net_creat(&d_id, dport, 16, p_key, p_server_host, sport, (m2m_func)dev_callback, NULL);
     while(1){
        m2m_trysync(dm2m.net);
     }

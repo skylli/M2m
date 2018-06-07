@@ -8,6 +8,10 @@
 #include "m2m_log.h"
 #include "config.h"
 #include "app_implement.h"
+#include "util.h"
+#include <stdlib.h>
+
+
 /*******************
 ** It's an sample to show how to build an client to send data request to server use m2m library.
 ****/
@@ -79,7 +83,7 @@ int main(){
 
     
     /**1. 建立 network ********/
-    m2m.net = m2m_net_creat( &local_id, TST_LOCAL_PORT, strlen(TST_LOCAL_KEY),TST_LOCAL_KEY,TST_SERVER_HOST, TST_SERVERT_PORT,test_callback,NULL);
+    m2m.net = m2m_net_creat( &local_id, TST_LOCAL_PORT, strlen(TST_LOCAL_KEY),TST_LOCAL_KEY,TST_SERVER_HOST, TST_SERVERT_PORT, (m2m_func)test_callback,NULL);
     if( !m2m.net){
         m2m_log_error(" creat net failt !! \n");
         goto func_tst_end;
@@ -87,18 +91,18 @@ int main(){
     tst_ret[TST_NET_CREAT] = 1;
     /*2  在线设备查询 ***/
     #if 1
-    m2m_dev_online_check( m2m.net, TST_SERVER_HOST, TST_SERVERT_PORT, &local_id, test_onlineCheck_callback,&tst_ret[TST_ONLINE_CHECK]);
+    m2m_dev_online_check((Net_T*) m2m.net, TST_SERVER_HOST, TST_SERVERT_PORT, &local_id, (m2m_func)test_onlineCheck_callback,&tst_ret[TST_ONLINE_CHECK]);
     WAIT_UNTIL(tst_ret[TST_ONLINE_CHECK],1, m2m.net);
     #endif
     /**2 发送广播包**********/
-    ret = m2m_broadcast_data_start(m2m.net,TST_SERVERT_PORT,strlen(TES_BROADCAST_DATA),TES_BROADCAST_DATA,test_callback,&tst_ret[TST_BORADCAST]);
+    ret = m2m_broadcast_data_start((Net_T*)m2m.net,TST_SERVERT_PORT,strlen(TES_BROADCAST_DATA),TES_BROADCAST_DATA,(m2m_func)test_callback,&tst_ret[TST_BORADCAST]);
     WAIT_UNTIL(tst_ret[TST_BORADCAST],1, m2m.net);
     
     m2m_log("stop broadcast ...");
-    m2m_broadcast_data_stop(m2m.net);
+    m2m_broadcast_data_stop((Net_T*) m2m.net);
     
     /**3 创建会话*********/
-    m2m.session = m2m_session_creat(m2m.net, &remote_id,TST_REMOTE_HOST, TST_REMOTE_PORT, strlen(TST_SECRET_KEY1),TST_SECRET_KEY1,test_callback,&tst_ret[TST_SESSION_CREAT]);
+    m2m.session = m2m_session_creat( m2m.net, &remote_id,TST_REMOTE_HOST, TST_REMOTE_PORT, strlen(TST_SECRET_KEY1),TST_SECRET_KEY1,(m2m_func)test_callback,&tst_ret[TST_SESSION_CREAT]);
     if( !m2m.session ){
         m2m_log_error(" creat session failt !! \n");
         goto func_tst_end;
@@ -110,9 +114,9 @@ int main(){
         if(tst_ret[TST_SESSION_CREAT] && tst_ret[TST_DATA] )
             break;
     }
-    ret = m2m_session_secret_set( &m2m, (strlen(TST_SECRET_KEY2)),(TST_SECRET_KEY2),test_callback,&tst_ret[TST_KEYSET]);
+    ret = m2m_session_secret_set( &m2m, (strlen(TST_SECRET_KEY2)),(TST_SECRET_KEY2), (m2m_func)test_callback,&tst_ret[TST_KEYSET]);
     WAIT_UNTIL(tst_ret[TST_KEYSET],1, m2m.net);
-    ret = m2m_session_token_update( &m2m,test_callback,&tst_ret[TST_TOKEN]);
+    ret = m2m_session_token_update( &m2m, (m2m_func)test_callback,&tst_ret[TST_TOKEN]);
     WAIT_UNTIL(tst_ret[TST_TOKEN],1, m2m.net);
     ret = m2m_session_data_send(&m2m, strlen(TST_DATA_STR), TST_DATA_STR, (m2m_func)test_callback ,&tst_ret[TST_TOTAL]);
     WAIT_UNTIL(tst_ret[TST_TOKEN],1, m2m.net);
@@ -120,7 +124,7 @@ func_tst_end:
 
     m2m_net_destory(m2m.net);
     m2m_log_error(" test end !! \n");
-    ret = test_result(tst_ret, tst_item_name, (TST_MAX -1) );
+    ret = test_result(tst_ret, (u8**)tst_item_name, (TST_MAX -1) );
     return ret;
 }
 void test_onlineCheck_callback(int code,M2M_packet_T **pp_ack_pkt, M2M_packet_T *p_recv_pkt,void *p_arg){

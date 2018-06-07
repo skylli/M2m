@@ -690,7 +690,7 @@ static M2M_Return_T _net_recv_handle_without_session
                 if(p_raw->enc_type == M2M_ENC_TYPE_NOENC)
                     break;
 
-                ack_payload.p_data = &new_token;
+                ack_payload.p_data = (u8*)&new_token;
                 ack_payload.len = sizeof(u32);
 
                 ret = _net_session_slave_creat(p_net,p_raw->stoken, p_raw->msgid, &p_raw->src_id, &new_token);
@@ -804,7 +804,7 @@ static M2M_Return_T _net_recv_slave_hanle(Net_T *p_net,Session_T *p_s,M2M_proto_
                 p_s->messageid = p_dec->msgid;
                 
                 ack_payload.len = sizeof(u32);
-                ack_payload.p_data = &p_s->ctoken;
+                ack_payload.p_data = (u8*) &p_s->ctoken;
                 
                 m2m_debug_level( M2M_LOG,"session (%p) creat client token = %x to remote master.", p_s, p_s->ctoken);
                 ret = net_ack( (u16)M2M_HTTP_OK, M2M_PROTO_CMD_TOKEN_ACK, p_net, pkt_dec.ctoken, &p_s->enc, p_raw,&ack_payload);
@@ -821,7 +821,8 @@ static M2M_Return_T _net_recv_slave_hanle(Net_T *p_net,Session_T *p_s,M2M_proto_
                     m2m_debug_level_noend(M2M_LOG_DEBUG, "net receive new key : ");
                     m2m_byte_print(p_dec->payload.p_data,p_dec->payload.len);
                     ret =  p_net->func_arg.func( M2M_REQUEST_SET_SECRETKEY,&p_ack_payload, &p_dec->payload,p_net->func_arg.p_user_arg);
-                    ret = net_ack( (u16)M2M_HTTP_OK, M2M_PROTO_IOC_CMD_SETKEY_ACK, p_net, pkt_dec.ctoken, &p_s->enc, p_raw,p_ack_payload);
+                    ret = net_ack( (u16)M2M_HTTP_OK, M2M_PROTO_IOC_CMD_SETKEY_ACK, p_net, \
+                                    pkt_dec.ctoken, &p_s->enc, p_raw,(M2M_packet_T*)p_ack_payload);
                     mfree(p_ack_payload);
                     p_ack_payload = NULL;
                     // 刷新当前 session 的秘钥.
@@ -839,7 +840,7 @@ static M2M_Return_T _net_recv_slave_hanle(Net_T *p_net,Session_T *p_s,M2M_proto_
         // 把数据回应到应用层。
             p_s->messageid = p_dec->msgid;
             ret =  p_net->func_arg.func( M2M_REQUEST_DATA, &p_ack_payload, &p_dec->payload,p_net->func_arg.p_user_arg);
-            ret = net_ack( (u16)M2M_HTTP_OK, M2M_PROTO_CMD_DATA_ACK, p_net, pkt_dec.ctoken, &p_s->enc, p_raw,p_ack_payload);
+            ret = net_ack( (u16)M2M_HTTP_OK, M2M_PROTO_CMD_DATA_ACK, p_net, pkt_dec.ctoken, &p_s->enc, p_raw,(M2M_packet_T*)p_ack_payload);
             mfree(p_ack_payload);
             p_ack_payload = NULL;
             break;
@@ -1149,7 +1150,7 @@ static M2M_Return_T net_trysync( Net_Args_T *p_args,int flags ){
 }
 // 构造   net request  node, 并挂到 net 链表
 static Net_request_node_T *net_request_packet_creat(Net_Args_T *p_args,M2M_Proto_Cmd_T cmd){
-    m2m_assert(p_args, M2M_ERR_INVALID );
+    m2m_assert(p_args, NULL);
 
     int ret = M2M_ERR_NULL;
     Net_T *p_n = p_args->p_net;
@@ -1223,7 +1224,7 @@ static Net_request_node_T *net_request_packet_find(Net_request_node_T *p_hd, u32
 static M2M_Return_T net_request_send(Net_T *p_net, Net_request_node_T *p_el){
 
     
-    M2M_Proto_Cmd_Arg_T args;1
+    M2M_Proto_Cmd_Arg_T args;
     mmemset((u8*)&args, 0, sizeof(M2M_Proto_Cmd_Arg_T));
 
     args.socket_fd = p_net->protocol.socket_fd;

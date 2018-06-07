@@ -7,7 +7,7 @@
 **
 ***********************************************************************
 **********************************************************************/
-
+#include <stdlib.h>
 #include <string.h>
 #include "m2m_type.h"
 #include "m2m.h"
@@ -116,9 +116,9 @@ int main(int argc, char **argv){
     // build net 
     m2m_int(&dconf);
     if(argc < 11)
-        m2m.net = m2m_net_creat(&l_id,l_port,l_keylen, l_key, NULL, 0, app_callback, NULL);
+        m2m.net = m2m_net_creat(&l_id,l_port,l_keylen, l_key, NULL, 0, (m2m_func)app_callback, NULL);
     else 
-        m2m.net = m2m_net_creat(&l_id,l_port,l_keylen, l_key, p_server_host, s_port, app_callback, NULL);
+        m2m.net = m2m_net_creat(&l_id,l_port,l_keylen, l_key, p_server_host, s_port, (m2m_func)app_callback, NULL);
 
     if( !m2m.net ){
         m2m_printf("creat net failt !!\n");
@@ -126,14 +126,14 @@ int main(int argc, char **argv){
     }
 
     // creat session 
-    m2m.session = m2m_session_creat(m2m.net, &r_id, p_remote_host, r_port, r_keylen, r_key, app_callback, NULL);
+    m2m.session = m2m_session_creat(m2m.net, &r_id, p_remote_host, r_port, r_keylen, r_key, (m2m_func)app_callback, NULL);
     if( !m2m.session){
         m2m_printf("session creat failt !!\n");
         m2m_net_destory(m2m.net);
         return -1;
     }
     // sen out 
-    ret = m2m_session_data_send(&m2m, strlen(p_send_data), p_send_data,transmit_callback, &recv_flag);
+    ret = m2m_session_data_send(&m2m, strlen(p_send_data), p_send_data, (m2m_func)transmit_callback, &recv_flag);
     while(recv_flag == 0){
         m2m_trysync(m2m.net);
     }

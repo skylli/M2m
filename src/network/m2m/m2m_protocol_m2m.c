@@ -123,7 +123,8 @@ int _proto_m2m_destory(M2M_Proto_Cmd_Arg_T *p_args,int flags){
 ** 3. 释放 coap 包，并把整个的封包 发送出去.
 ** 4. 释放整个包.
 *********************************/
-static u8 *router_package_creat(
+static int router_package_creat(
+        u8 **pp_out_pkt,
         int *output_len,
         M2M_Proto_Cmd_Arg_T *p_args,
         u8 type, 
@@ -143,12 +144,12 @@ static u8 *router_package_creat(
     // 1.4 添加 payload.
     if( payload_len > 0 && p_payload ){
         ret = coap_add_data(p_pdu,payload_len,p_payload);
-        _RETURN_EQUAL_FREE(ret , 0, p_pdu, NULL);
+        _RETURN_EQUAL_FREE(ret , 0, p_pdu, M2M_ERR_NULL);
     }
     // 2 计算整包的大小.
     pkt_len = _PROTO_LEN( opt_len, payload_len);
     u8 *p_pkt = mmalloc( pkt_len + 1);
-    _RETURN_EQUAL_FREE(p_pkt, 0, p_pdu, NULL);
+    _RETURN_EQUAL_FREE(p_pkt, 0, p_pdu, M2M_ERR_NULL);
     Router_hdr_T *p_router = (Router_hdr_T*)p_pkt;
 
     // 6. 填充路由头部.
@@ -169,7 +170,8 @@ static u8 *router_package_creat(
     coap_delete_pdu( p_pdu );
 
     *output_len = (sizeof(Router_hdr_T) + payload_dec_len);
-    return p_pkt;
+    *pp_out_pkt = p_pkt;
+    return M2M_ERR_NOERR;
 }
 
 /*********************************
@@ -373,7 +375,7 @@ static int _proto_m2m_recvpkt(M2M_proto_recv_rawpkt_T *p_rawpkt,int flags){
     p_rawpkt->enc_type = p_r->secret_type;
     p_rawpkt->msgid = p_r->msgid;
     p_rawpkt->stoken = p_r->stoken;
-    if( p_r->stoken == NULL && p_rawpkt->enc_type != M2M_ENC_TYPE_BROADCAST )
+    if( p_r->stoken == 0 && p_rawpkt->enc_type != M2M_ENC_TYPE_BROADCAST )
         m2m_debug_level( M2M_LOG_ERROR,"NO token !!");
     //m2m_bytes_dump("encoder pdu :", p_r->p_payload,p_r->payloadlen);
 
@@ -570,7 +572,9 @@ static M2M_Return_T broadcast_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
     int num,i,send_len = 0 ;
     u32 iplist[4];
     M2M_Address_T remote_addr;
-    u8 *p_pkt = router_package_creat(&send_len,p_args, COAP_OPT_BROADCAST_RQ, p_args->payloadlen, p_args->p_payload,0,NULL);
+    u8 *p_pkt = NULL;
+
+    router_package_creat(&p_pkt,&send_len,p_args, COAP_OPT_BROADCAST_RQ, p_args->payloadlen, p_args->p_payload,0,NULL);
 
     // 使能 广播.
     broadcast_enable(p_args->socket_fd);

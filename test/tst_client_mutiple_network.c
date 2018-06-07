@@ -18,7 +18,7 @@
 #include "m2m_log.h"
 #include "config.h"
 #include "app_implement.h"
-
+#include "util.h"
 
 /***************** 测试配置****************************************************/
 #define TST_MSES_MAX_NET    (10)    // 并行构建的 net 个数.
@@ -106,7 +106,7 @@ int mutiple_trysync_continue(TST_Mnet_item_T *p_ml){
         // print test result.
         for(i=0;i< TST_MSES_MAX_NET; i++){
             m2m_printf("net<%d> -----------test items: \n", TST_MNET_APP_LOCAL_ID_START+i);
-            p_ml[i].final_result = test_mnet_result(p_ml[i].result, tst_mnet_subitem_name, TST_MNET_CMD_MAX-1 ) + 1;
+            p_ml[i].final_result = test_mnet_result(p_ml[i].result, (u8**)tst_mnet_subitem_name, TST_MNET_CMD_MAX-1 ) + 1;
             result_count += p_ml[i].final_result;
             m2m_printf("net<%d> ----------- final test result: %d \n", TST_MNET_APP_LOCAL_ID_START+i, p_ml->final_result);
         }
@@ -165,21 +165,21 @@ int mutiple_cmd_jump_rq( TST_Mnet_item_T *p_ml, int index){
             //break;
        case TST_MNET_CMD_SESSION_CREAT:
             p_ml->m2m.session = m2m_session_creat( p_ml->m2m.net, &remote_id, TST_MNET_REMOTE_HOST, TST_MNET_REMOTE_PORT,\
-                                                   strlen(TST_MNET_REMOTE_SECRET_KEY), TST_MNET_REMOTE_SECRET_KEY, test_mnet_callback, p_ml);
+                                                   strlen(TST_MNET_REMOTE_SECRET_KEY), TST_MNET_REMOTE_SECRET_KEY,(m2m_func)test_mnet_callback, p_ml);
             if( p_ml->m2m.session){
                 p_ml->respon_indx = p_ml->rq_indx;
             }
             break;
         case TST_MNET_CMD_DATA:
-            ret = m2m_session_data_send( &p_ml->m2m, strlen(TST_MNET_DATA_STR), TST_MNET_DATA_STR,test_mnet_callback, p_ml );
+            ret = m2m_session_data_send( &p_ml->m2m, strlen(TST_MNET_DATA_STR), TST_MNET_DATA_STR,(m2m_func)test_mnet_callback, p_ml );
             p_ml->respon_indx = p_ml->rq_indx;
             break;
         case TST_MNET_CMD_TOKEN:
-            ret = m2m_session_token_update( &p_ml->m2m, test_mnet_callback, p_ml);
+            ret = m2m_session_token_update( &p_ml->m2m, (m2m_func)test_mnet_callback, p_ml);
             p_ml->respon_indx = p_ml->rq_indx;
             break;
         case TST_MNET_CMD_TOTAL:
-            ret = m2m_session_data_send( &p_ml->m2m, strlen(TST_MNET_DATA_STR), TST_MNET_DATA_STR,test_mnet_callback, p_ml);
+            ret = m2m_session_data_send( &p_ml->m2m, strlen(TST_MNET_DATA_STR), TST_MNET_DATA_STR,(m2m_func)test_mnet_callback, p_ml);
             p_ml->respon_indx = p_ml->rq_indx;
             break;
         case TST_MNET_CMD_DESTORY:
@@ -202,7 +202,7 @@ int main(void){
         // send reqeust .
         for(i=0; i<TST_MSES_MAX_NET;i++ )
             ret = mutiple_cmd_jump_rq(&mnet[i], i);
-        if(!mutiple_trysync_continue(&mnet))
+        if(!mutiple_trysync_continue((TST_Mnet_item_T*)&mnet))
             break;
     }
     m2m_deint();

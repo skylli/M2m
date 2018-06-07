@@ -20,6 +20,7 @@
 #include "m2m_log.h"
 #include "config.h"
 #include "app_implement.h"
+#include "util.h"
 
 
 /***************** 测试配置****************************************************/
@@ -101,7 +102,7 @@ int mutiple_session_report(TST_Mses_item_T *p_ml){
         // print test result.
         for( i=0; i< TST_MSES_MAX_NET; i++){
             m2m_printf("session <%d> -----------test items: \n", TST_MSES_APP_LOCAL_ID_START+i);
-            p_ml[i].final_result = test_mses_result(p_ml[i].result, tst_mses_subitem_name, TST_MSES_CMD_MAX-1 ) + 1;
+            p_ml[i].final_result = test_mses_result(p_ml[i].result, (u8**)tst_mses_subitem_name, TST_MSES_CMD_MAX-1 ) + 1;
             result_count += p_ml[i].final_result;
             m2m_printf("session <%d> ----------- final test result: %s \n", TST_MSES_APP_LOCAL_ID_START+i, (p_ml->final_result)?"successful.":"fault." );
         }
@@ -120,8 +121,8 @@ int mutiple_cmd_jump_rq(size_t p_net,TST_Mses_item_T *p_ml, int index){
     M2M_id_T local_id, remote_id;
     int ret  =0;
 
-    mmemset(&local_id, 0, sizeof( M2M_id_T));
-    mmemset(&remote_id, 0, sizeof( M2M_id_T));
+    mmemset( (u8*)&local_id, 0, sizeof( M2M_id_T));
+    mmemset( (u8*)&remote_id, 0, sizeof( M2M_id_T));
     
     local_id.id[ ID_LEN-1] = TST_MSES_APP_LOCAL_ID_START + index;
     remote_id.id[ ID_LEN-1 ] = TST_MSES_REMOTE_ID;
@@ -140,25 +141,25 @@ int mutiple_cmd_jump_rq(size_t p_net,TST_Mses_item_T *p_ml, int index){
             
        case TST_MSES_CMD_SESSION_CREAT:
             p_ml->m2m.session = m2m_session_creat( p_ml->m2m.net, &remote_id, TST_MSES_REMOTE_HOST, TST_MSES_REMOTE_PORT,\
-                                                   strlen(TST_MSES_REMOTE_SECRET_KEY), TST_MSES_REMOTE_SECRET_KEY, test_mses_callback, p_ml);
+                                                   strlen(TST_MSES_REMOTE_SECRET_KEY), TST_MSES_REMOTE_SECRET_KEY, (m2m_func)test_mses_callback, p_ml);
             if( p_ml->m2m.session){
                 p_ml->respon_indx = p_ml->rq_indx;
             }
             break;
         case TST_MSES_CMD_DATA:
-            ret = m2m_session_data_send( &p_ml->m2m, strlen(TST_MSES_DATA_STR), TST_MSES_DATA_STR,test_mses_callback, p_ml );
+            ret = m2m_session_data_send( &p_ml->m2m, strlen(TST_MSES_DATA_STR), TST_MSES_DATA_STR, (m2m_func)test_mses_callback, p_ml );
             p_ml->respon_indx = p_ml->rq_indx;
             break;
         case TST_MSES_CMD_TOKEN:
-            ret = m2m_session_token_update( &p_ml->m2m, test_mses_callback, p_ml);
+            ret = m2m_session_token_update( &p_ml->m2m, (m2m_func)test_mses_callback, p_ml);
             p_ml->respon_indx = p_ml->rq_indx;
             break;
         case TST_MSES_CMD_TOTAL:
-            ret = m2m_session_data_send( &p_ml->m2m, strlen(TST_MSES_DATA_STR), TST_MSES_DATA_STR,test_mses_callback, p_ml);
+            ret = m2m_session_data_send( &p_ml->m2m, strlen(TST_MSES_DATA_STR), TST_MSES_DATA_STR, (m2m_func)test_mses_callback, p_ml);
             p_ml->respon_indx = p_ml->rq_indx;
             break;
         case TST_MSES_CMD_DESTORY:
-            ret = m2m_session_destory(p_ml->m2m.session);
+            ret = m2m_session_destory( &p_ml->m2m);
             p_ml->m2m.session = 0;
             p_ml->rq_indx++;
             p_ml->respon_indx = p_ml->rq_indx;
@@ -171,10 +172,10 @@ int main(void){
     size_t net = 0;
     M2M_id_T local_id;
 
-    mmemset(&local_id, 0, sizeof( M2M_id_T));
+    mmemset( (u8*)&local_id, 0, sizeof( M2M_id_T));
     
     local_id.id[ ID_LEN-1] = TST_MSES_APP_LOCAL_ID_START;
-    mmemset( &msession, 0, sizeof(TST_Mses_item_T));
+    mmemset( (u8*)&msession, 0, sizeof(TST_Mses_item_T));
 
     
     m2m_int(NULL);
@@ -184,7 +185,7 @@ int main(void){
         // send reqeust .
         for(i=0; i<TST_MSES_MAX_NET;i++ )
             ret = mutiple_cmd_jump_rq( net, &msession[i], i);
-        if(mutiple_session_report(&msession))
+        if(mutiple_session_report((TST_Mses_item_T*)&msession))
             break;
         m2m_trysync(net);
     }

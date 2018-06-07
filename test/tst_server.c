@@ -5,11 +5,12 @@
 #include "m2m_log.h"
 #include "config.h"
 #include "app_implement.h"
-
+#include "util.h"
+#include "m2m_router.h"
  /*******************
  ** It's an sample to show how to build an server use m2m library.
  ****/
- #define SERVER_HOST "192.168.2.223"
+ #define SERVER_HOST "192.168.0.222"
  #define REMOTE_HOST SERVER_HOST
  #define SERVER_PORT (9527)
  #define LOCAL_SECRET_KEY   "1234567890123456"
