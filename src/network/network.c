@@ -145,15 +145,24 @@ static INLINE u32 _net_token_creat(){
 static INLINE u32 _net_getNextSendTime(int count){
     return ( m2m_current_time_get() +  ((_RETRANSMIT_DEFAULT_INTERVAL << count) * 1000 ));
 }
-static INLINE int _net_session_pkt_retransmit_increase( M2M_request_pkt_T *p_req ){
+static INLINE int _session_pkt_retransmit_increase( M2M_request_pkt_T *p_req ){
     p_req->transmit_count++;
     p_req->next_send_time = _net_getNextSendTime( p_req->transmit_count );
     m2m_debug_level(M2M_LOG_DEBUG,"currenttime %d retransmit count %d, next send time %d !!\n",m2m_current_time_get() ,p_req->transmit_count,p_req->next_send_time);
     return M2M_ERR_NOERR;
 }
-static INLINE void _net_session_aliveTime_update(Session_T *p_s){
+static INLINE void _session_aliveTime_update(Session_T *p_s){
 
     p_s->last_alive_tm = m2m_current_time_get();
+}
+// all ps node will be send in next trysync
+static _session_update_sendtime(Session_T *p_s){
+    M2M_request_pkt_T *p_el = NULL, *p_tmp = NULL;
+    u32 current_tm = m2m_current_time_get();
+    LL_FOREACH_SAFE(p_s->p_request_head, p_el, p_tmp){
+        p_el->next_send_time = current_tm;
+    }
+
 }
 static INLINE BOOL _net_session_alive_timeout(Session_T *p_s){
     return (A_BIGER_U32( m2m_current_time_get(), (p_s->last_alive_tm + _MAX_SESSION_IDLE_TIME_MS)) );
@@ -231,7 +240,7 @@ static M2M_Return_T _net_proto_request_retransmit_send(Net_T *p_net,Session_T *p
     
     if( ( p_s_node->cmd == M2M_PROTO_CMD_TOKEN_RQ || p_s_node->cmd == M2M_PROTO_CMD_PING_RQ || _SESSION_HAS_TOKEN(p_s) ) && \
         _SESSION_NODE_CAN_SEND(p_s, p_s_node->messageid)){
-        _net_session_pkt_retransmit_increase(p_s_node);
+        _session_pkt_retransmit_increase(p_s_node);
 
         m2m_debug_level( M2M_LOG_DEBUG,"session (%p) retransmiting time %d node [%p] retransmit cmd %d", p_s,m2m_current_time_get(), p_s_node,p_s_node->cmd);
         return ( p_s->protocol.func_proto_ioctl )(p_s_node->cmd,&cmdargs,0);
@@ -272,7 +281,7 @@ static M2M_Return_T _net_proto_request_send(
         }
     LL_APPEND( p_s->p_request_head,p_request_node);
    // update session.
-    //_net_session_aliveTime_update(p_s);
+    //_session_aliveTime_update(p_s);
     return M2M_ERR_NOERR;
 }
 /** token request.******************************/
@@ -309,7 +318,7 @@ static M2M_Return_T _net_session_slave_creat(Net_T *p_net,u32 stoken, u8 msgid,M
     *p_token = p_s->ctoken;
     
     LL_APPEND( p_net->p_session_head, p_s);
-    _net_session_aliveTime_update(p_s);
+    _session_aliveTime_update(p_s);
     m2m_debug_level( M2M_LOG_DEBUG,"session (%p) creating token = %x", p_s,p_s->ctoken);
     m2m_debug_level( M2M_LOG_DEBUG,"slave session (%p) creat for receiving and handle remote package.",p_s);
     return M2M_ERR_NOERR;
@@ -769,7 +778,7 @@ static M2M_Return_T _net_recv_slave_hanle(Net_T *p_net,Session_T *p_s,M2M_proto_
            return net_ack( (u16)M2M_HTTP_MSGID_NOMATCH, M2M_PROTO_IOC_CMD_ERR_PKT_ACK, p_net, pkt_dec.ctoken, &p_s->enc, p_raw,NULL);
 #endif
     // update lift time.
-    _net_session_aliveTime_update(p_s);
+    _session_aliveTime_update(p_s);
     // 4. 解密并解包.
     ret =  ( p_net->protocol.func_proto_ioctl )( M2M_PROTO_IOC_CMD_DECODE_PKT_RQ,&dec_args,0);
     // 获取错误码.
@@ -780,7 +789,7 @@ static M2M_Return_T _net_recv_slave_hanle(Net_T *p_net,Session_T *p_s,M2M_proto_
         goto SLAVE_SESSION_HANDLE_END;
     }
     // 续命
-    _net_session_aliveTime_update( p_s );
+    _session_aliveTime_update( p_s );
     switch(p_dec->cmd){
         case M2M_PROTO_CMD_ERR_PKT_RQ:
         case M2M_PROTO_CMD_ERR_PKT_ACK:
@@ -882,7 +891,7 @@ static M2M_Return_T _net_recv_master_hanel(
         goto MASTER_RECV_HANDLE_END;
     }
     // 续命
-    //_net_session_aliveTime_update( p_s );
+    //_session_aliveTime_update( p_s );
     switch(p_node->cmd){
         case M2M_PROTO_CMD_ERR_PKT_RQ:
         case M2M_PROTO_CMD_ERR_PKT_ACK:
@@ -894,6 +903,8 @@ static M2M_Return_T _net_recv_master_hanel(
             if( p_dec->cmd == M2M_PROTO_CMD_TOKEN_ACK && p_dec->payload.len ==  sizeof(u32) && p_dec->payload.p_data){
                 mcpy( (u8*)&p_s->ctoken, (u8*)p_dec->payload.p_data,sizeof(u32));
                 _SESSION_UPDATE_TOKEN(p_s);
+                // all unsending node will be send in next trysync 
+                _session_update_sendtime(p_s);
                 m2m_debug_level( M2M_LOG,"net <%p> (%p) receive client token = %x.", p_net, p_s, p_s->ctoken);
             }
             // 回调
@@ -1066,7 +1077,7 @@ static M2M_Return_T net_retransmit(Net_T *p_net){
     return M2M_ERR_NOERR;
 }
 /**
-* descript: 维持连接.定时发送ping
+* descript: 维持连接.定时发送ping.
 *   1.判断是否达到发送ping 的时间。
 *   2. 发送   ping.
 **/ 
