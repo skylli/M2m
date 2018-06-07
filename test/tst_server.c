@@ -28,7 +28,7 @@
               M2M_packet_T *p_ack = mmalloc(sizeof(M2M_packet_T));
               p_ack->p_data = mmalloc( strlen(SERVER_ID) + 1 );
               p_ack->len = strlen(SERVER_ID);
-              mcpy( p_ack->p_data, SERVER_ID, strlen(SERVER_ID));
+              mcpy( (u8*)p_ack->p_data, SERVER_ID, strlen(SERVER_ID));
               
               m2m_log_debug("server receive code = %d\n", code);
               if( p_recv_data->len > 0 && p_recv_data->p_data){

@@ -64,7 +64,7 @@
                         if( pdenc->p_enckey)                                 \
                             mcpy( (u8*)pdenc->p_enckey, (u8*)psenc->p_enckey,psenc->keylen);}\
                 }while(0)
-#define _ACK_HEAD_FULL( p_ack, p_raw,ctoken) do{    mcpy(&p_ack->remote_addr,&p_raw->remote,sizeof(M2M_Address_T) ); \
+#define _ACK_HEAD_FULL( p_ack, p_raw,ctoken) do{    mcpy((u8*)&p_ack->remote_addr, (u8*)&p_raw->remote,sizeof(M2M_Address_T) ); \
                                 CPY_DEV_ID( p_ack->src_id,p_raw->dst_id );    \
                                 CPY_DEV_ID(p_ack->dst_id,p_raw->src_id);  \
                                 p_ack->ctoken = ctoken;            \
@@ -156,7 +156,7 @@ static INLINE void _session_aliveTime_update(Session_T *p_s){
     p_s->last_alive_tm = m2m_current_time_get();
 }
 // all ps node will be send in next trysync
-static _session_update_sendtime(Session_T *p_s){
+static void _session_update_sendtime(Session_T *p_s){
     M2M_request_pkt_T *p_el = NULL, *p_tmp = NULL;
     u32 current_tm = m2m_current_time_get();
     LL_FOREACH_SAFE(p_s->p_request_head, p_el, p_tmp){
@@ -470,8 +470,8 @@ static M2M_Return_T _net_host_ping(Net_T *p_net){
         M2M_Proto_Cmd_Arg_T cmd;
         Net_enc_T no_enc;
     
-        mmemset(&cmd,0,sizeof(M2M_Proto_Cmd_Arg_T));
-        mmemset(&no_enc,0,sizeof(M2M_Proto_Cmd_Arg_T));
+        mmemset((u8*)&cmd,0,sizeof(M2M_Proto_Cmd_Arg_T));
+        mmemset((u8*)&no_enc,0,sizeof(M2M_Proto_Cmd_Arg_T));
         cmd.socket_fd = p_net->protocol.socket_fd;
         cmd.stoken = p_net->host.stoken;
         cmd.messageid = p_net->host.msgid++;
@@ -588,7 +588,7 @@ static M2M_Return_T net_ack(u16 code,M2M_Proto_Ioctl_Cmd_T ioc_cmd, Net_T *p_net
 
     M2M_proto_ack_T pkt_ack, *p_ack;
 
-    mmemset(&pkt_ack, 0, sizeof(M2M_proto_ack_T));
+    mmemset( (u8*)&pkt_ack, 0, sizeof(M2M_proto_ack_T));
     p_ack = &pkt_ack;
     
     p_ack->code = code;
@@ -597,7 +597,7 @@ static M2M_Return_T net_ack(u16 code,M2M_Proto_Ioctl_Cmd_T ioc_cmd, Net_T *p_net
     _ACK_HEAD_FULL(p_ack,p_recv, ctoken);
 
     if( p_payload )
-        mcpy(&p_ack->payload,p_payload,sizeof( M2M_packet_T) );
+        mcpy( (u8*)&p_ack->payload, (u8*)p_payload,sizeof( M2M_packet_T) );
     return p_net->protocol.func_proto_ioctl(ioc_cmd,p_ack,0);
 }
 static M2M_Return_T _net_secret_key_update(Net_enc_T *p_enc,u8 *p_key,int enc_len){
@@ -613,7 +613,7 @@ static M2M_Return_T _net_secret_key_update(Net_enc_T *p_enc,u8 *p_key,int enc_le
         p_enc->p_enckey = mmalloc( p_new_enc->keylen + 1);
         _RETURN_EQUAL_0(p_enc->p_enckey, M2M_ERR_NULL);
     }
-    mcpy(p_enc->p_enckey,p_new_enc->key,p_new_enc->keylen);
+    mcpy( (u8*)p_enc->p_enckey, (u8*)p_new_enc->key,p_new_enc->keylen);
     p_enc->type =  p_new_enc->type;
     p_enc->keylen = p_new_enc->keylen;
     return M2M_ERR_NOERR;
@@ -627,7 +627,7 @@ static M2M_Return_T _net_relay_handle(Net_T *p_net, M2M_proto_recv_rawpkt_T *p_r
         return M2M_ERR_NOERR;
 
     M2M_protocol_relay_T args;
-    mmemset(&args,0,sizeof(M2M_protocol_relay_T));
+    mmemset((u8*)&args,0,sizeof(M2M_protocol_relay_T));
 
     args.socket_fd = p_net->protocol.socket_fd;
     args.p_remote_addr = p_addr;
@@ -650,9 +650,9 @@ static M2M_Return_T _net_recv_handle_without_session
     Net_enc_T enc;
     M2M_packet_T ack_payload;
 
-    mmemset(&pkt_dec, 0, sizeof(M2M_proto_dec_recv_pkt_T));
-    mmemset( &enc,0,sizeof(Net_enc_T));
-    mmemset( &ack_payload, 0, sizeof(M2M_packet_T));
+    mmemset( (u8*)&pkt_dec, 0, sizeof(M2M_proto_dec_recv_pkt_T));
+    mmemset( (u8*)&enc,0,sizeof(Net_enc_T));
+    mmemset( (u8*)&ack_payload, 0, sizeof(M2M_packet_T));
     
     p_dec = &pkt_dec;
     
@@ -662,7 +662,7 @@ static M2M_Return_T _net_recv_handle_without_session
 
     if( p_raw->enc_type == M2M_ENC_TYPE_NOENC)
         enc.type = M2M_ENC_TYPE_NOENC;
-    else mcpy( &enc, &p_net->enc,sizeof( Net_enc_T) ); // todo!!! 注意 指针指向 net 的enc 所以 多线程时必须重构
+    else mcpy( (u8*)&enc, (u8*)&p_net->enc,sizeof( Net_enc_T) ); // todo!!! 注意 指针指向 net 的enc 所以 多线程时必须重构
     
     // 4. 解密并解包.
     ret =  ( p_net->protocol.func_proto_ioctl )( M2M_PROTO_IOC_CMD_DECODE_PKT_RQ,&dec_args,0);
@@ -670,7 +670,7 @@ static M2M_Return_T _net_recv_handle_without_session
     // 获取错误码.
     if( ret != 0){
         net_ack( (u16)ret, M2M_PROTO_IOC_CMD_ERR_PKT_ACK, p_net, pkt_dec.ctoken, &enc, p_raw,NULL);
-        m2m_debug_level(M2M_LOG_ERROR, "net <%p> receive package that can't decode."); 
+        m2m_debug_level(M2M_LOG_ERROR, "net <%p> receive package that can't decode.", p_net); 
         goto NO_SESSION_HANDLE_END;
     }
     switch( p_dec->cmd){
@@ -763,8 +763,8 @@ static M2M_Return_T _net_recv_slave_hanle(Net_T *p_net,Session_T *p_s,M2M_proto_
     M2M_dec_args_T dec_args;
     u8 *p_ack_payload = NULL;
 
-    mmemset(&pkt_dec, 0, sizeof(M2M_proto_dec_recv_pkt_T) );
-    mmemset( &ack_payload, 0, sizeof(M2M_packet_T));
+    mmemset((u8*)&pkt_dec, 0, sizeof(M2M_proto_dec_recv_pkt_T) );
+    mmemset( (u8*)&ack_payload, 0, sizeof(M2M_packet_T));
     
     p_dec = &pkt_dec;
     dec_args.p_dec = &pkt_dec;
@@ -864,7 +864,7 @@ static M2M_Return_T _net_recv_master_hanel(
     M2M_proto_dec_recv_pkt_T pkt_dec,*p_dec;
     M2M_dec_args_T dec_args;
 
-    mmemset(&pkt_dec, 0, sizeof(M2M_proto_dec_recv_pkt_T) );
+    mmemset((u8*)&pkt_dec, 0, sizeof(M2M_proto_dec_recv_pkt_T) );
     
     p_dec = &pkt_dec;
     dec_args.p_dec = &pkt_dec;
@@ -985,7 +985,7 @@ static M2M_Return_T _net_recv_handle( Net_T *p_net){
 
     recv_rawpkt.payload.p_data = mmalloc( M2M_PROTO_PKT_MAXSIZE );
     _RETURN_EQUAL_0(recv_rawpkt.payload.p_data, M2M_ERR_NULL);
-    mmemset( recv_rawpkt.payload.p_data, 0, M2M_PROTO_PKT_MAXSIZE);
+    mmemset( (u8*)recv_rawpkt.payload.p_data, 0, M2M_PROTO_PKT_MAXSIZE);
 
     recv_rawpkt.payload.len = M2M_PROTO_PKT_MAXSIZE;
     recv_rawpkt.socket_fd = p_net->protocol.socket_fd;
@@ -1187,7 +1187,7 @@ static Net_request_node_T *net_request_packet_creat(Net_Args_T *p_args,M2M_Proto
        if( !p_node->payload.p_data && p_node->enc.p_enckey)
             mfree(p_node->enc.p_enckey);
        _RETURN_EQUAL_FREE(p_node->payload.p_data, 0, p_node, NULL);
-       mcpy(p_node->payload.p_data,p_args->p_data,p_args->len);
+       mcpy( (u8*)p_node->payload.p_data, (u8*)p_args->p_data,p_args->len);
     }
 
     LL_APPEND(p_n->p_request_hd, p_node);
@@ -1223,8 +1223,8 @@ static Net_request_node_T *net_request_packet_find(Net_request_node_T *p_hd, u32
 static M2M_Return_T net_request_send(Net_T *p_net, Net_request_node_T *p_el){
 
     
-    M2M_Proto_Cmd_Arg_T args;
-    mmemset(&args, 0, sizeof(M2M_Proto_Cmd_Arg_T));
+    M2M_Proto_Cmd_Arg_T args;1
+    mmemset((u8*)&args, 0, sizeof(M2M_Proto_Cmd_Arg_T));
 
     args.socket_fd = p_net->protocol.socket_fd;
     args.payloadlen = p_el->payload.len;
@@ -1233,7 +1233,7 @@ static M2M_Return_T net_request_send(Net_T *p_net, Net_request_node_T *p_el){
     args.stoken = p_el->stoken;
     
     CPY_DEV_ID(args.src_id,p_net->my);
-    mcpy( &args.address, &p_el->remote, sizeof(M2M_Address_T));
+    mcpy( (u8*)&args.address, (u8*)&p_el->remote, sizeof(M2M_Address_T));
     return p_net->protocol.func_proto_ioctl( p_el->cmd, &args, 0);
     
 }
@@ -1325,9 +1325,9 @@ static M2M_Return_T broadcast_recv_handle
     Net_enc_T enc;
     M2M_packet_T ack_payload;
 
-    mmemset(&pkt_dec, 0, sizeof(M2M_proto_dec_recv_pkt_T));
-    mmemset( &enc,0,sizeof(Net_enc_T));
-    mmemset( &ack_payload, 0, sizeof(M2M_packet_T));
+    mmemset( (u8*)&pkt_dec, 0, sizeof(M2M_proto_dec_recv_pkt_T));
+    mmemset( (u8*)&enc,0,sizeof(Net_enc_T));
+    mmemset( (u8*)&ack_payload, 0, sizeof(M2M_packet_T));
     
     p_dec = &pkt_dec;
     

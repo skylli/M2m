@@ -125,8 +125,8 @@ int mutiple_cmd_jump_rq( TST_Mnet_item_T *p_ml, int index){
     M2M_id_T local_id, remote_id;
     int ret  =0;
 
-    mmemset(&local_id, 0, sizeof( M2M_id_T));
-    mmemset(&remote_id, 0, sizeof( M2M_id_T));
+    mmemset( (u8*)&local_id, 0, sizeof( M2M_id_T));
+    mmemset( (u8*)&remote_id, 0, sizeof( M2M_id_T));
     
     local_id.id[ID_LEN-1] = TST_MNET_APP_LOCAL_ID_START + index;
     remote_id.id[ ID_LEN-1 ] = TST_MNET_REMOTE_ID;
@@ -194,7 +194,7 @@ int mutiple_cmd_jump_rq( TST_Mnet_item_T *p_ml, int index){
 }
 int main(void){
     int i=0, ret=0;
-    mmemset( &mnet, 0, sizeof(TST_Mnet_item_T));
+    mmemset( (u8*)&mnet, 0, sizeof(TST_Mnet_item_T));
 
     
     m2m_int(NULL);

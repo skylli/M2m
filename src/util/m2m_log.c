@@ -44,7 +44,7 @@ static void m2m_file_print(int level,const char *fmt, ...){
     //screen print
     va_list args;
     
-    mmemset(buffer,0,_LOG_MAXBYTE_LINE);
+    mmemset((u8*)buffer,0,_LOG_MAXBYTE_LINE);
     va_start(args, format);
     vprintf(format, args);
     vsprintf(buffer,fmt,args);

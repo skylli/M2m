@@ -35,10 +35,10 @@ int main(int argc, char **argv){
     u8 *p_send_data = NULL,*p_remote_host = NULL, *p_server_host = NULL;
     int recv_flag = 0;
 
-    mmemset(&l_id, 0, sizeof(M2M_id_T));
-    mmemset(&r_id, 0, sizeof(M2M_id_T));
-    mmemset(l_key,0, 20);
-    mmemset(r_key,0, 20);
+    mmemset((u8*)&l_id, 0, sizeof(M2M_id_T));
+    mmemset((u8*)&r_id, 0, sizeof(M2M_id_T));
+    mmemset((u8*) l_key,0, 20);
+    mmemset((u8*) r_key,0, 20);
         
     
     if(argc < 8){
@@ -67,7 +67,7 @@ int main(int argc, char **argv){
     // get local secret key
     l_keylen = strlen(argv[3]);
     l_keylen = (l_keylen>16)?16:l_keylen;
-    mcpy( l_key, argv[3], l_keylen);
+    mcpy( (u8*)l_key, (u8*)argv[3], l_keylen);
     l_keylen = 16;
 
     // 3 m2m_printf("< remote id > < remote host > <remote port> <remote key> < transmit data>");    
@@ -81,7 +81,7 @@ int main(int argc, char **argv){
     // get local secret key
     r_keylen = strlen(argv[7]);
     r_keylen = (r_keylen>16)?16:r_keylen;
-    mcpy( r_key, argv[7], r_keylen);
+    mcpy( (u8*)r_key, (u8*)argv[7], r_keylen);
     r_keylen = 16;
     // get transmit data 
     p_send_data = argv[8];

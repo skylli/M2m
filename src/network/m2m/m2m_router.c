@@ -61,8 +61,8 @@ int list_add( Relay_node_T **pp,M2M_id_T *p_id,M2M_Address_T *p_addr){
     _RETURN_EQUAL_0(p_new, -1);
 
     p_new->alive_time = m2m_current_time_get();
-    mcpy(&p_new->id, p_id, sizeof(M2M_id_T));
-    mcpy(&p_new->addr, p_addr, sizeof(M2M_Address_T));
+    mcpy( (u8*)&p_new->id,  (u8*)p_id, sizeof(M2M_id_T));
+    mcpy( (u8*)&p_new->addr, (u8*)p_addr, sizeof(M2M_Address_T));
 
     LL_APPEND(p_hd, p_new);
     *pp = p_hd;
@@ -102,7 +102,7 @@ int relay_list_add( void **pp,M2M_id_T *p_id,M2M_Address_T *p_addr){
         
         m2m_debug_level(M2M_LOG,"devices online update \n");
         m2m_bytes_dump("update device id is: ",p_id, sizeof(M2M_id_T));
-        mcpy( &p_find->addr, p_addr,sizeof(M2M_Address_T));
+        mcpy( (u8*)&p_find->addr, (u8*)p_addr,sizeof(M2M_Address_T));
         p_find->alive_time = m2m_current_time_get();
     }
     else {
@@ -194,13 +194,13 @@ int tst_relay_list(void){
     M2M_id_T id1,id2,id3;
     M2M_Address_T addr1,addr2,addr3, addr4, *p_find_addr = NULL;
 
-    mmemset( &id1, 0, sizeof(M2M_id_T));
-    mmemset( &id2, 0, sizeof(M2M_id_T));
-    mmemset( &id3, 0, sizeof(M2M_id_T));
+    mmemset( (u8*)&id1, 0, sizeof(M2M_id_T));
+    mmemset( (u8*)&id2, 0, sizeof(M2M_id_T));
+    mmemset( (u8*)&id3, 0, sizeof(M2M_id_T));
 
-    mmemset( &addr1, 0, sizeof(M2M_Address_T));
-    mmemset( &addr2, 0, sizeof(M2M_Address_T));
-    mmemset( &addr3, 0, sizeof(M2M_Address_T));  
+    mmemset( (u8*)&addr1, 0, sizeof(M2M_Address_T));
+    mmemset( (u8*)&addr2, 0, sizeof(M2M_Address_T));
+    mmemset( (u8*)&addr3, 0, sizeof(M2M_Address_T));  
     /** 初始化设备***/ 
     id1.id[sizeof(M2M_id_T)-1] = 1;
     id2.id[sizeof(M2M_id_T)-1] = 2;

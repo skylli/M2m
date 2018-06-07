@@ -51,8 +51,8 @@ int main(int argc, char **argv){
       return -1;
     }
 
-    mmemset( &d_id,0,sizeof(M2M_id_T));
-    mmemset( &s_id,0,sizeof(M2M_id_T));
+    mmemset( (u8*) &d_id,0,sizeof(M2M_id_T));
+    mmemset( (u8*) &s_id,0,sizeof(M2M_id_T));
     // get id
     STR_2_INT_ARRAY( d_id.id, argv[1], strlen(argv[1]));
     p_device_id = &d_id;
@@ -62,7 +62,7 @@ int main(int argc, char **argv){
     mmemset( p_key, 0, 20);
     keylen = strlen(argv[3]);
     keylen = (keylen>16)?16:keylen;
-    mcpy( p_key, argv[3], keylen);
+    mcpy( (u8*)p_key, (u8*)argv[3], keylen);
     
     if(argc >=6){
     // get server id
@@ -70,7 +70,7 @@ int main(int argc, char **argv){
     // get server host
         p_server_host = argv[5];
         sport = atoi(argv[6]);
-        mcpy( &dconf.host_id,&s_id, sizeof(M2M_id_T));
+        mcpy((u8*) &dconf.host_id, (u8*)&s_id, sizeof(M2M_id_T));
     }
 
     m2m_bytes_dump("\n\tdevice id: ", d_id.id, sizeof(M2M_id_T));
@@ -103,7 +103,7 @@ void dev_callback(int code,M2M_packet_T **pp_ack_data,M2M_packet_T *p_recv_data,
                  M2M_packet_T *p_ack = mmalloc(sizeof(M2M_packet_T));
                  p_ack->p_data = mmalloc( sizeof( M2M_id_T) + 1 );
                  p_ack->len = sizeof( M2M_id_T);
-                 mcpy( p_ack->p_data, p_device_id->id, sizeof(M2M_id_T) );
+                 mcpy((u8*) p_ack->p_data, (u8*)p_device_id->id, sizeof(M2M_id_T) );
                  
                  m2m_log_debug("server receive code = %d\n", code);
                  if( p_recv_data->len > 0 && p_recv_data->p_data){

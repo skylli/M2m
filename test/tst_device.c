@@ -60,7 +60,7 @@ void dev_callback(int code,M2M_packet_T **pp_ack_data,M2M_packet_T *p_recv_data,
                  M2M_packet_T *p_ack = mmalloc(sizeof(M2M_packet_T));
                  p_ack->p_data = mmalloc( sizeof( M2M_id_T) + 1 );
                  p_ack->len = sizeof( M2M_id_T);
-                 mcpy( p_ack->p_data, device_id.id, sizeof(M2M_id_T) );
+                 mcpy( (u8*)p_ack->p_data, (u8*)device_id.id, sizeof(M2M_id_T) );
                  
                  m2m_log_debug("server receive code = %d\n", code);
                  if( p_recv_data->len > 0 && p_recv_data->p_data){

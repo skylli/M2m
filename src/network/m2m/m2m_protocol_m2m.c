@@ -580,7 +580,7 @@ static M2M_Return_T broadcast_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
     for(i = 0; i < num; i++)
     {
         // 关于端口号: 此处的端口是客户端的端口
-        mcpy( remote_addr.ip, &iplist[i], 4);
+        mcpy( (u8*)remote_addr.ip, (u8*)&iplist[i], 4);
         remote_addr.len  = 4;
         m2m_send(p_args->socket_fd, &remote_addr, p_pkt,send_len);
     }

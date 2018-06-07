@@ -48,17 +48,17 @@ M2M_id_T *p_sid;
        return -1;
     }
 
-    mmemset( &s_id,0,sizeof(M2M_id_T));
+    mmemset( (u8*)&s_id,0,sizeof(M2M_id_T));
     // get id
     STR_2_INT_ARRAY( s_id.id, argv[1], strlen(argv[1]));
     p_sid = &s_id;
     // get port 
     sport = atoi(argv[2]);
     // get key
-    mmemset( p_key, 0, 20);
+    mmemset( (u8*)p_key, 0, 20);
     keylen = strlen(argv[3]);
     keylen = (keylen>16)?16:keylen;
-    mcpy( p_key, argv[3], keylen);
+    mcpy( (u8*)p_key, (u8*)argv[3], keylen);
 
     
     m2m_bytes_dump("\n\tserver id: ", s_id.id, sizeof(M2M_id_T));
@@ -85,7 +85,7 @@ M2M_id_T *p_sid;
               M2M_packet_T *p_ack = mmalloc(sizeof(M2M_packet_T));
               p_ack->p_data = mmalloc( sizeof(M2M_id_T) );
               p_ack->len = sizeof(M2M_id_T);
-              mcpy( p_ack->p_data, p_sid->id, sizeof(M2M_id_T));
+              mcpy( (u8*)p_ack->p_data, (u8*)p_sid->id, sizeof(M2M_id_T));
               
               m2m_log_debug("server receive code = %d\n", code);
               if( p_recv_data->len > 0 && p_recv_data->p_data){

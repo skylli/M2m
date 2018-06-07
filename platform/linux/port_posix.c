@@ -77,7 +77,7 @@ int m2m_openSocket(int* socketId, u16 port)
     }
     
     if( -1 == bind(fd, (SOCKADDR*)&sin, sizeof(SOCKADDR))){
-        m2m_debug_level( M2M_LOG_ERROR, "socket bind to prot %d fail!");
+        m2m_debug_level( M2M_LOG_ERROR, "socket bind to prot %d fail!", port);
         return M2M_ERR_SOCKETERR;
     }
     *socketId = fd;
