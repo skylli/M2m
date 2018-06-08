@@ -16,7 +16,7 @@
 #ifndef M2M_LOG_H
 #define M2M_LOG_H
 /** config ************************/
-//#define LOG_VERBOSE
+#define LOG_VERBOSE
 /** config end***************************/
 static const char *s_debug[] = {
         "[ ALL ]",

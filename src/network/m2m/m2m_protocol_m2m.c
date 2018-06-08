@@ -376,7 +376,7 @@ static int _proto_m2m_recvpkt(M2M_proto_recv_rawpkt_T *p_rawpkt,int flags){
     p_rawpkt->msgid = p_r->msgid;
     p_rawpkt->stoken = p_r->stoken;
     if( p_r->stoken == 0 && p_rawpkt->enc_type != M2M_ENC_TYPE_BROADCAST )
-        m2m_debug_level( M2M_LOG_ERROR,"NO token !!");
+        m2m_debug_level( M2M_LOG_WARN,"NO token !!");
     //m2m_bytes_dump("encoder pdu :", p_r->p_payload,p_r->payloadlen);
 
     DEV_ID_LOG_PRINT( M2M_LOG_DEBUG, p_rawpkt->src_id,"source id "," ---------->\n");
