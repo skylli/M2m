@@ -18,7 +18,7 @@
 
 /** 设备端 配置 ***********************************************************/
 static M2M_id_T *p_device_id = NULL;
-
+static int app_d_end = 3;
 /*************************************************************/
 void dev_callback(int code,M2M_packet_T **pp_ack_data,M2M_packet_T *p_recv_data,void *p_arg);
 
@@ -85,8 +85,8 @@ int main(int argc, char **argv){
     }
 
     m2m_int(&dconf);
-    dm2m.net = m2m_net_creat(&d_id, dport, 16, p_key, p_server_host, sport, (m2m_func)dev_callback, NULL);
-    while(1){
+    dm2m.net = m2m_net_creat(&d_id, dport, 16, p_key, p_server_host, sport, (m2m_func)dev_callback, &app_d_end);
+    while(app_d_end){
        m2m_trysync(dm2m.net);
     }
 
@@ -117,6 +117,9 @@ void dev_callback(int code,M2M_packet_T **pp_ack_data,M2M_packet_T *p_recv_data,
             if( p_recv_data && p_recv_data->len > 0 && p_recv_data->p_data){
                 m2m_log("receive data : %s\n",p_recv_data->p_data);
                 m2m_bytes_dump("recv dump : ",p_recv_data->p_data, p_recv_data->len);
+                 if(p_arg ) {
+                        *((int*) p_arg) = *((int*) p_arg) - 1;
+                    }
             }
             break;
     }

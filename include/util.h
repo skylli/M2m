@@ -46,7 +46,7 @@
 // 绝对值的差
 #define ABSOLUTE_DIFF(big,little,max)   ((u32)big > (u32)little)?(big - little):( big + (max - little))
 
-#define ALLOC_COPY(d,s,len)     do{ d = mmalloc(len);if(d) mcpy(d,s,len);}while(0)
+#define ALLOC_COPY(d,s,len)     do{ d = mmalloc(len+1);if(d) mcpy(d,s,len);}while(0)
 
 #define MFREE(p)    do{mfree(p); p = NULL;}while(0)
 // 转换
