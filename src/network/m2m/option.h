@@ -15,7 +15,7 @@
 #ifndef _OPTION_H_
 #define _OPTION_H_
 #include <string.h>
-#include "util.h"
+#include "../../../include/util.h"
 #include "bits.h"
 #include "pdu.h"
 

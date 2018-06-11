@@ -17,7 +17,7 @@ extern "C"
 #endif
 #include "m2m.h"
 #include "m2m_type.h"
-#include "network.h"
+#include "../src/network/network.h"
 typedef struct {
     size_t net;
     size_t session;
@@ -56,12 +56,14 @@ M2M_Return_T m2m_session_token_update(M2M_T *p_m2m,m2m_func func, void *p_args);
 // 更新会话秘钥
 M2M_Return_T m2m_session_secret_set(M2M_T *p_m2m,int len,u8 *p_data,m2m_func func,void *p_args);
 
+#ifdef CONF_BROADCAST_ENABLE
 // 开启不断发送广播包.
 M2M_Return_T m2m_broadcast_data_start(Net_T *p_n,int port,int len,u8 *p_data,m2m_func func, void *p_args);
 
 // 停止广播包的发送
 M2M_Return_T m2m_broadcast_data_stop(Net_T *p_n);
 
+#endif  //CONF_BROADCAST_ENABLE
 // 发送数据 
 M2M_Return_T m2m_session_data_send(M2M_T *p_m2m,int len,u8 *p_data,m2m_func func,void *p_args);
 

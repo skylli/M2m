@@ -23,16 +23,16 @@ set( m2m_lib "m2m_lib.${M2M_VERSION_MAJOR}.${M2M_VERSION_MINOR}.${M2M_VERSION_PA
 
 
 # 搜索当前目录下所有的头文件
-file(GLOB_RECURSE Foo_HEADERS "*.h")
-set (Foo_INCLUDE_DIRS "")
-foreach (_headerFile ${Foo_HEADERS})
-    get_filename_component(_dir ${_headerFile} PATH)
-    list (APPEND Foo_INCLUDE_DIRS ${_dir})
-endforeach()
-list(REMOVE_DUPLICATES Foo_INCLUDE_DIRS)
+# file(GLOB_RECURSE Foo_HEADERS "*.h")
+# set (Foo_INCLUDE_DIRS "")
+# foreach (_headerFile ${Foo_HEADERS})
+#     get_filename_component(_dir ${_headerFile} PATH)
+#     list (APPEND Foo_INCLUDE_DIRS ${_dir})
+# endforeach()
+# list(REMOVE_DUPLICATES Foo_INCLUDE_DIRS)
 
 # 包含工程所有的头文件
-include_directories(${Foo_INCLUDE_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}/include")
+# include_directories(${Foo_INCLUDE_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 # 子模块生成子库
 FILE(GLOB SUBLIB_PLATFORM ${PLATFORM_PATH_LINUX}/*.c)

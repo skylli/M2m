@@ -6,11 +6,13 @@
  */
 #ifndef _type_h_
 #define _type_h_
+
 #ifdef      __cplusplus
 extern "C" {
 #endif
 
 #include <stdio.h>
+#include <stddef.h>
 
 
 #ifndef WD_SYSTEM
@@ -68,7 +70,7 @@ typedef unsigned long u32;
 #define BOOL int
 #endif
 
-typedef size_t  (*m2m_func)();
+typedef size_t (*m2m_func)();
 
 
 

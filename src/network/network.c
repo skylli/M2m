@@ -6,14 +6,15 @@
  */
 #include <string.h>
 #include "network.h"
-#include "m2m_port.h"
-#include "util.h"
-#include "utlist.h"
-#include "config.h"
-#include "m2m_log.h"
-#include "m2m_port.h"
-#include "m2m_protocol.h"
-#include "app_implement.h"
+#include "../../include/m2m_port.h"
+#include "../../include/util.h"
+#include "../../include/utlist.h"
+#include "../../include/app_implement.h"
+#include "../../include/m2m_port.h"
+
+#include "../../config/config.h"
+#include "../util/m2m_log.h"
+#include "m2m/m2m_protocol.h"
 
 #ifdef HAS_LINUX_MUTEX
 #include <pthread.h>
@@ -699,7 +700,7 @@ static M2M_Return_T _net_recv_handle_without_session
                 ret = net_ack( (u16)M2M_HTTP_OK, M2M_PROTO_CMD_TOKEN_ACK, p_net, pkt_dec.ctoken, &enc, p_raw,&ack_payload);
             }
             break;
-       
+#ifdef M2M_PROTO_CMD_BROADCAST_RQ
         case M2M_PROTO_CMD_BROADCAST_RQ:
             {
             
@@ -715,6 +716,7 @@ static M2M_Return_T _net_recv_handle_without_session
                 ret =  p_find->callback_arg.func( p_dec->code, NULL, &p_dec->payload, p_find->callback_arg.p_user_arg);
             }
             break;
+#endif // M2M_PROTO_CMD_BROADCAST_RQ
         // 查询 设备 id 是否在该节点 路由里
         case M2M_PROTO_CMD_ONLINK_CHECK_RQ:
             {   
@@ -1001,11 +1003,13 @@ static M2M_Return_T _net_recv_handle( Net_T *p_net){
         // no package was received.
         goto RECV_HAND_END;
         }
+#ifdef CONF_BROADCAST_ENABLE
     //处理广播包
     if(recv_rawpkt.enc_type == M2M_ENC_TYPE_BROADCAST){
         ret = broadcast_recv_handle(p_net, &recv_rawpkt);
         goto RECV_HAND_END;
     }
+#endif // CONF_BROADCAST_ENABLE
     // 刷新设备的在线时间。
     _ROUTER_LIST_ADD_DEVICE(p_net,p_raw);
 // 2. 若不是发送给本地则查询是否需要转发.
@@ -1246,9 +1250,12 @@ static M2M_Return_T net_request_retransmit(Net_T *p_net){
     LL_FOREACH_SAFE(p_net->p_request_hd, p_el, p_tmp){
 
         // 不重发 广播包.
-        if(p_el->cmd == M2M_PROTO_CMD_BROADCAST_RQ )
+#ifdef CONF_BROADCAST_ENABLE
+        if(p_el->cmd == M2M_PROTO_CMD_BROADCAST_RQ ){
             ret = net_request_send(p_net, p_el);
-        else{ // 非广播包.
+            }else
+#endif // CONF_BROADCAST_ENABLE
+            { // 非广播包.
             if( p_el->retransmit_count >= 5){
                 //  超时，不再重传
                 if( p_el->callback_arg.func){
@@ -1286,6 +1293,8 @@ static M2M_Return_T online_check_rq(Net_Args_T *p_args, int flags){
     m2m_debug_level( M2M_LOG,"net <%p> send out onlink chek to %s successfully!!", p_args->p_net,p_args->remote.p_host);
     return ret;
 }
+
+#ifdef CONF_BROADCAST_ENABLE
 // 开始发送广播包
 static M2M_Return_T broadcast_start( Net_Args_T *p_args,int flags){
     int ret = 0;
@@ -1373,6 +1382,7 @@ RECV_BROADCAST_END:
     return ret;
 }
 
+#endif //CONF_BROADCAST_ENABLE.
 
 // 1.同 net_trysync().
 // 2.自带锁功能.
@@ -1396,10 +1406,14 @@ m2m_func net_funcTable[M2M_NET_CMD_MAX + 1] =
     (m2m_func) net_session_data_send,
     //M2M_NET_CMD_SESSION_PING_SEND,
     (m2m_func) net_session_ping_send,
+
+#ifdef CONF_BROADCAST_ENABLE
     //M2M_NET_CMD_BROADCAST_START,  // 开始 广播包
     (m2m_func) broadcast_start,
     //M2M_NET_CMD_BROADCAST_STOP,
     (m2m_func) broadcast_stop,
+#endif //CONF_BROADCAST_ENABLE
+
     // M2M_NET_CMD_TRYSYNC,
     (m2m_func) net_trysync,
     // M2M_NET_CMD_ONLINE_CHECK

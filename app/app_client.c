@@ -9,13 +9,13 @@
 **********************************************************************/
 #include <stdlib.h>
 #include <string.h>
-#include "m2m_type.h"
-#include "m2m.h"
-#include "m2m_api.h"
-#include "m2m_log.h"
-#include "config.h"
-#include "util.h"
-#include "app_implement.h"
+#include "../include/m2m_type.h"
+#include "../include/m2m.h"
+#include "../include/m2m_api.h"
+#include "../src/util/m2m_log.h"
+#include "../config/config.h"
+#include "../include/util.h"
+#include "../include/app_implement.h"
 
 
 void app_callback(int code,M2M_packet_T **pp_ack_data,M2M_packet_T *p_recv_data,void *p_arg);

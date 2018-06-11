@@ -4,8 +4,13 @@
 //#define HAS_LINUX_MUTEX	1
 /** net thing **/
 #define PROTO_VERSION_HDR   (1)
+/* platform  **/
+//#define  PLATFORM_ESP   // esp8266 support.
 
-#define C_HAS_FILE
+/* enable broadcast */
+//#define CONF_BROADCAST_ENABLE 
+
+//#define C_HAS_FILE
 /** timeout  **/
 #define NET_RETRAMIT_TIMOUT_MS  (10000)
 

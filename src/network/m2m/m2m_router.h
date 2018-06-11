@@ -6,7 +6,7 @@
 */
 #ifndef _M2M_ROUTER_H_
 #define _M2M_ROUTER_H_
-#include "m2m_type.h"
+#include "../../../include/m2m_type.h"
 
 typedef struct ROUTER_HDR_T{
     unsigned short version:2;   /* protocol version */

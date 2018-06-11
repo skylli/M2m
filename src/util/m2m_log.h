@@ -10,8 +10,7 @@
  * Author: skylli
  */
  #include <stdio.h>
-#include "m2m_type.h"
-#include "m2m.h"
+#include "../../include/m2m.h"
 
 #ifndef M2M_LOG_H
 #define M2M_LOG_H

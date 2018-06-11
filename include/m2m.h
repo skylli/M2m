@@ -7,6 +7,7 @@
  *
  * Author: skylli
  */
+#include "../config/config.h"
 #include "m2m_type.h"
 #ifndef _M2M_H_
 #define _M2M_H_

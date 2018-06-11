@@ -8,13 +8,12 @@
 
 #ifndef _PDU_H_
 #define _PDU_H_
-
-#include "m2m_type.h"
-#include "util.h"
-#include "config.h"
-
-
 #include <stdio.h>
+
+#include "../../../include/m2m_type.h"
+#include "../../../config/config.h"
+#include "../../../include/util.h"
+
 /* pre-defined constants that reflect defaults for CoAP */
 #define COAP_ACK_RANDOM_FACTOR  1
 #define COAP_DEFAULT_RESPONSE_TIMEOUT  2 /* response timeout in seconds */

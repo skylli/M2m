@@ -2,13 +2,14 @@
 ** 功能测试： token, key 设置,广播测试.
 *********************************************************/
 #include <string.h>
-#include "m2m_type.h"
-#include "m2m.h"
-#include "m2m_api.h"
-#include "m2m_log.h"
-#include "util.h"
-#include "config.h"
-#include "app_implement.h"
+#include "../include/m2m_type.h"
+#include "../include/m2m.h"
+#include "../include/m2m_api.h"
+#include "../src/util/m2m_log.h"
+#include "../config/config.h"
+#include "../include/app_implement.h"
+#include "../include/util.h"
+
 
 /** 设备端 配置 ***********************************************************/
 #define TST_DEV_LOCAL_ID    (2)

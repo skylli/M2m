@@ -7,8 +7,9 @@
  *
  * Author: skylli
  ********/
- #include <stdio.h>
-#include "m2m_type.h"
+#include <stdio.h>
+#include <time.h>
+#include "../../include/m2m_type.h"
 #include "m2m_log.h"
 
 u8 g_log_level = 0;

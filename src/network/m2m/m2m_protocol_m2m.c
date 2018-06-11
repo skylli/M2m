@@ -1,17 +1,17 @@
 /*
  * Copyright (C) 2014-2016 m2m Technologies. All Rights Reserved. 
  */
-#include "m2m.h"
-#include "m2m_type.h"
-#include "util.h"
+#include "../../../include/m2m.h"
+#include "../../../include/util.h"
+#include "../../../config/config.h"
+#include "../../../include/m2m_port.h"
+#include "../../util/m2m_log.h"
+#include "../../crypt/m2m_crypt.h"
+
 #include "pdu.h"
 #include "option.h"
-#include "config.h"
-#include "m2m_log.h"
 #include "m2m_router.h"
 #include "m2m_protocol.h"
-#include "m2m_port.h"
-#include "m2m_crypt.h"
 
 /*** define *************************/
 #define _PDU_PKT_CREAT(p_pdu,cmd,code,msgid,ctoken,pdu_size,ret) do{         \
@@ -464,7 +464,8 @@ static M2M_Return_T _proto_m2m_cmd_parse(coap_pdu_t *p_pdu_recv,M2M_proto_dec_re
                 m2m_debug_level(M2M_LOG_DEBUG, "receive cmd = Online check ack");
                 p_dec->cmd = M2M_PROTO_CMD_ONLINK_CHECK_ACK;
                 break;
-                
+
+#ifdef CONF_BROADCAST_ENABLE                
            case COAP_OPT_BROADCAST_RQ:
                 opt_get = 1;
                 m2m_debug_level(M2M_LOG_DEBUG, "receive cmd = Broadcast request");
@@ -475,6 +476,7 @@ static M2M_Return_T _proto_m2m_cmd_parse(coap_pdu_t *p_pdu_recv,M2M_proto_dec_re
                 m2m_debug_level(M2M_LOG_DEBUG, "receive cmd = broadcast request ack");
                 p_dec->cmd = M2M_PROTO_CMD_BROADCAST_ACK;
                 break;
+#endif //CONF_BROADCAST_ENABLE
     }
     // get payload.
     if( payload_get == 1){
@@ -567,7 +569,7 @@ static int _proto_m2m_dec( M2M_dec_args_T *p_a,int flags){
     return  M2M_ERR_NOERR;
 
 }
-
+#ifdef CONF_BROADCAST_ENABLE
 static M2M_Return_T broadcast_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
     int num,i,send_len = 0 ;
     u32 iplist[4];
@@ -596,6 +598,8 @@ static M2M_Return_T broadcast_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
 static M2M_Return_T broadcast_ack(M2M_proto_ack_T *p_ack, int flags){
     return _proto_m2m_ack_send(p_ack, COAP_OPT_BROADCAST_ACK, p_ack->payload.len,p_ack->payload.p_data,0, NULL);
 }
+#endif  //CONF_BROADCAST_ENABLE
+
 int onlinkchek_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
 
     return _proto_m2m_request_send(p_args, COAP_OPT_ONLINKCHECK_RQ,p_args->payloadlen, p_args->p_payload,0, NULL);
@@ -648,10 +652,14 @@ m2m_func _m2m_protocol_funcTable[M2M_PROTO_CMD_MAX + 1] =
     (m2m_func)_proto_m2m_pkt_err_ack,       // 15
     // M2M_PROTO_IOC_CMD_ERR_PKT_ACK,
     (m2m_func)_proto_m2m_pkt_err_ack,
+    
+#ifdef CONF_BROADCAST_ENABLE 
     //M2M_PROTO_IOC_CMD_BROADCAST_SEND
     (m2m_func)broadcast_rq,               // 17
     // M2M_PROTO_IOC_CMD_BROADCAST_ACK
     (m2m_func)broadcast_ack,                // 18
+#endif //CONF_BROADCAST_ENABLE   
+
     // M2M_PROTO_IOC_CMD_RELAY
     (m2m_func)relay_package,
     // M2M_PROTO_IOC_CMD_ONLINK_CHECK

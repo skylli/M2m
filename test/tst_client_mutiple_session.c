@@ -14,13 +14,14 @@
 **********************************************************************/
 
 #include <string.h>
-#include "m2m_type.h"
-#include "m2m.h"
-#include "m2m_api.h"
-#include "m2m_log.h"
-#include "config.h"
-#include "app_implement.h"
-#include "util.h"
+#include "../include/m2m_type.h"
+#include "../include/m2m.h"
+#include "../include/m2m_api.h"
+#include "../src/util/m2m_log.h"
+#include "../config/config.h"
+#include "../include/app_implement.h"
+#include "../include/util.h"
+
 
 
 /***************** 测试配置****************************************************/

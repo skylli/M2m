@@ -23,8 +23,13 @@
 #include <stdint.h>
 #endif
 
-#include "m2m_type.h"
-#include "util.h"
+#include "../../../include/m2m_type.h"
+#include "../../../include/util.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /** 
  * Sets the bit @p bit in bit-vector @p vec. This function returns @c
@@ -83,6 +88,10 @@ STATIC INLINE int bits_getb(const uint8_t *vec, size_t size, uint8_t bit)
 
   return (*(vec + (bit >> 3)) & (1 << (bit & 0x07))) != 0;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _BITS_H_ */
 

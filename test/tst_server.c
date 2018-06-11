@@ -1,12 +1,12 @@
 #include <string.h>
-#include "m2m_type.h"
-#include "m2m.h"
-#include "m2m_api.h"
-#include "m2m_log.h"
-#include "config.h"
-#include "app_implement.h"
-#include "util.h"
-#include "m2m_router.h"
+#include "../include/m2m_type.h"
+#include "../include/m2m.h"
+#include "../include/m2m_api.h"
+#include "../src/util/m2m_log.h"
+#include "../config/config.h"
+#include "../include/app_implement.h"
+#include "../include/util.h"
+
  /*******************
  ** It's an sample to show how to build an server use m2m library.
  ****/

@@ -6,8 +6,8 @@
 */
 #ifndef _M2M_PROTOCOL_H_
 #define _M2M_PROTOCOL_H_
-#include "m2m.h"
-#include "m2m_type.h"
+#include "../../../include/m2m.h"
+#include "../../../include/util.h"
 
 typedef struct NET_ENC_T{
     Encrypt_type_T type;
@@ -113,8 +113,12 @@ typedef enum M2M_PROTO_IOCTL_CMD_T{
     M2M_PROTO_IOC_CMD_DECODE_PKT_RQ,   // 对接收包进行分拆。
     M2M_PROTO_IOC_CMD_ERR_PKT_RQ,      //15 包解析层面出错，秘钥、crc、protocol 错误
     M2M_PROTO_IOC_CMD_ERR_PKT_ACK,     // 回应包解析出错。
+
+#ifdef CONF_BROADCAST_ENABLE
     M2M_PROTO_IOC_CMD_BROADCAST_SEND, // 17
     M2M_PROTO_IOC_CMD_BROADCAST_ACK,
+#endif // CONF_BROADCAST_ENABLE
+
     M2M_PROTO_IOC_CMD_RELAY,
     
     M2M_PROTO_IOC_CMD_ONLINK_CHECK,
@@ -143,8 +147,12 @@ typedef enum M2M_PROTO_CMD_T{
     M2M_PROTO_CMD_DECODE_PKT_RQ,   //对接收包进行分拆。
     M2M_PROTO_CMD_ERR_PKT_RQ,
     M2M_PROTO_CMD_ERR_PKT_ACK,
+
+#ifdef CONF_BROADCAST_ENABLE
     M2M_PROTO_CMD_BROADCAST_RQ,
     M2M_PROTO_CMD_BROADCAST_ACK,
+#endif // CONF_BROADCAST_ENABLE
+
     M2M_PROTO_CMD_RELAY,
 
     M2M_PROTO_CMD_ONLINK_CHECK_RQ,

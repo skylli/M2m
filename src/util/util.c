@@ -14,7 +14,7 @@
 *******************************************************************************/
 #include <stdlib.h>
 #include <string.h>
-#include "m2m_type.h"
+#include "../../include/m2m_type.h"
 
 int ascii_to_2u32(const char *devid, u32 *dev0, u32 *dev1)
 {

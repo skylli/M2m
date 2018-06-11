@@ -5,12 +5,12 @@
  *  	Author: skylli
 */
 // 每一个 net 都有一个 上层的 ip，当接收的包不是发给自身，且查询转发列表没有对应的 id 时往 host 转发。
-#include "m2m.h"
-#include "m2m_type.h"
-#include "util.h"
-#include "utlist.h"
-#include "m2m_log.h"
-#include "m2m_port.h"
+#include "../../../include/m2m.h"
+#include "../../../include/util.h"
+#include "../../../include/utlist.h"
+#include "../../../include/m2m_port.h"
+
+#include "../../util/m2m_log.h"
 #include <string.h>
 
 // #define _RETURNNONE_PP_IS_NULL(pp)   do{ if( !pp || *pp) return ;}while(0)

@@ -7,14 +7,15 @@
  *
  * Author: skylli
  */
-#include "m2m.h"
-#include "util.h"
-#include "m2m_api.h"
-#include "network.h"
-#include "m2m_protocol.h"
-#include "m2m_log.h"
-#include "m2m_api.h"
-#include "config.h"
+#include "../../include/m2m.h"
+#include "../../include/util.h"
+#include "../../include/m2m_api.h"
+#include "../../config/config.h"
+
+#include "../network/network.h"
+#include "../network/m2m/m2m_protocol.h"
+#include "../util/m2m_log.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -211,6 +212,8 @@ M2M_Return_T m2m_session_secret_set(M2M_T *p_m2m,int len,u8 *p_data,m2m_func fun
 }
 
 // 开启不断发送广播包.
+#ifdef CONF_BROADCAST_ENABLE
+
 /*****************************************************
 ** description: 向本地局域网发送广播包.
 ** args:
@@ -257,6 +260,7 @@ M2M_Return_T m2m_broadcast_data_stop(Net_T *p_n){
     return ret;
 }
 
+#endif // CONF_BROADCAST_ENABLE
 // 发送数据 
 /*****************************************************
 ** description: 发送数据.

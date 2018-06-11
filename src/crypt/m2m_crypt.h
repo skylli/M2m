@@ -18,7 +18,7 @@
 #ifdef __cplusplus
 extern "C"{
 #endif
-#include "m2m_type.h"
+#include "../../include/m2m_type.h"
 /*
  * 数据加密
  * src 源数据 dst 目标数据 len 源数据长度 key0 key1 密钥

@@ -7,9 +7,8 @@
 
 #ifndef _NETWORK_H_
 #define _NETWORK_H_
-#include "m2m.h"
-#include "m2m_type.h"
-#include "m2m_protocol.h"
+#include "../../include/m2m.h"
+#include "m2m/m2m_protocol.h"
 
 #ifdef HAS_LINUX_MUTEX
 #include <pthread.h>
@@ -101,8 +100,12 @@ typedef enum M2M_NET_CMD_T{
     M2M_NET_CMD_SESSION_SECRETKEY_SET,
     M2M_NET_CMD_SESSION_DATA_SEND,
     M2M_NET_CMD_SESSION_PING_SEND,
+
+#ifdef CONF_BROADCAST_ENABLE
     M2M_NET_CMD_BROADCAST_START,  // 开始 广播包
     M2M_NET_CMD_BROADCAST_STOP,
+#endif //CONF_BROADCAST_ENABLE
+
     M2M_NET_CMD_TRYSYNC,
     M2M_NET_CMD_ONLINE_CHECK,
     

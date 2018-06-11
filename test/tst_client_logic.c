@@ -2,13 +2,13 @@
 ** 功能测试： token, key 设置,广播测试.
 *********************************************************/
 #include <string.h>
-#include "m2m_type.h"
-#include "m2m.h"
-#include "m2m_api.h"
-#include "m2m_log.h"
-#include "config.h"
-#include "app_implement.h"
-#include "util.h"
+#include "../include/m2m_type.h"
+#include "../include/m2m.h"
+#include "../include/m2m_api.h"
+#include "../src/util/m2m_log.h"
+#include "../config/config.h"
+#include "../include/app_implement.h"
+#include "../include/util.h"
 #include <stdlib.h>
 
 
@@ -39,7 +39,11 @@ extern u8 g_log_level;
 enum{
     TST_NET_CREAT =0,
     TST_ONLINE_CHECK,
+
+#ifdef CONF_BROADCAST_ENABLE
     TST_BORADCAST,
+#endif // CONF_BROADCAST_ENABLE
+
     TST_SESSION_CREAT,
     TST_DATA,
     TST_TOKEN,
@@ -51,7 +55,10 @@ int tst_ret[TST_MAX];
 char *tst_item_name[TST_MAX] = {
     "network creat",
     "online check",
+
+#ifdef CONF_BROADCAST_ENABLE
     "broadcast ",
+#endif // CONF_BROADCAST_ENABLE
     "session creat"
     "data transmission",
     "token update",
@@ -94,13 +101,15 @@ int main(){
     m2m_dev_online_check((Net_T*) m2m.net, TST_SERVER_HOST, TST_SERVERT_PORT, &local_id, (m2m_func)test_onlineCheck_callback,&tst_ret[TST_ONLINE_CHECK]);
     WAIT_UNTIL(tst_ret[TST_ONLINE_CHECK],1, m2m.net);
     #endif
+
     /**2 发送广播包**********/
+#ifdef CONF_BROADCAST_ENABLE
     ret = m2m_broadcast_data_start((Net_T*)m2m.net,TST_SERVERT_PORT,strlen(TES_BROADCAST_DATA),TES_BROADCAST_DATA,(m2m_func)test_callback,&tst_ret[TST_BORADCAST]);
     WAIT_UNTIL(tst_ret[TST_BORADCAST],1, m2m.net);
     
     m2m_log("stop broadcast ...");
     m2m_broadcast_data_stop((Net_T*) m2m.net);
-    
+#endif // CONF_BROADCAST_ENABLE
     /**3 创建会话*********/
     m2m.session = m2m_session_creat( m2m.net, &remote_id,TST_REMOTE_HOST, TST_REMOTE_PORT, strlen(TST_SECRET_KEY1),TST_SECRET_KEY1,(m2m_func)test_callback,&tst_ret[TST_SESSION_CREAT]);
     if( !m2m.session ){
