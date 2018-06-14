@@ -6,6 +6,7 @@
 #include "../config/config.h"
 #include "../include/app_implement.h"
 #include "../include/util.h"
+#include "../src/network/m2m/m2m_router.h"
 
  /*******************
  ** It's an sample to show how to build an server use m2m library.

@@ -14,6 +14,7 @@
 #include "../config/config.h"
 #include "../include/util.h"
 #include "../include/app_implement.h"
+#include "../src/network/m2m/m2m_router.h"
 
 M2M_id_T *p_sid;
  void receivehandle(u16 code,M2M_packet_T **pp_ack_data,M2M_packet_T *p_recv_data,void *p_arg);
@@ -76,31 +77,31 @@ M2M_id_T *p_sid;
  }
 
  void receivehandle(u16 code,M2M_packet_T **pp_ack_data,M2M_packet_T *p_recv_data,void *p_arg){
-    
- switch(code){
-     case M2M_REQUEST_BROADCAST: 
-         {
-              M2M_packet_T *p_ack = mmalloc(sizeof(M2M_packet_T));
-              p_ack->p_data = mmalloc( sizeof(M2M_id_T) );
-              p_ack->len = sizeof(M2M_id_T);
-              mcpy( (u8*)p_ack->p_data, (u8*)p_sid->id, sizeof(M2M_id_T));
-              
-              m2m_log_debug("server receive code = %d\n", code);
-              if( p_recv_data->len > 0 && p_recv_data->p_data){
-                   m2m_log("server receive data : %s\n",p_recv_data->p_data);
+     m2m_log_debug("callback:: receive code = %d\n", code);
+     switch(code){
+         case M2M_REQUEST_BROADCAST: 
+             {
+                  M2M_packet_T *p_ack = mmalloc(sizeof(M2M_packet_T));
+                  p_ack->p_data = mmalloc( sizeof(M2M_id_T) );
+                  p_ack->len = sizeof(M2M_id_T);
+                  mcpy( (u8*)p_ack->p_data, (u8*)p_sid->id, sizeof(M2M_id_T));
+                  
+                  m2m_log_debug("server receive code = %d\n", code);
+                  if( p_recv_data->len > 0 && p_recv_data->p_data){
+                       m2m_log("server receive data : %s\n",p_recv_data->p_data);
+                 }
+                 *pp_ack_data = p_ack;
              }
-             *pp_ack_data = p_ack;
-         }
-         break;
-    case M2M_REQUEST_DATA:
-        {
-           if( p_recv_data->len > 0 && p_recv_data->p_data){
-                   m2m_log("server receive data : %s\n",p_recv_data->p_data);
-             }
-        }
-        break;
-     default:
-         break;
+             break;
+        case M2M_REQUEST_DATA:
+            {
+               if( p_recv_data->len > 0 && p_recv_data->p_data){
+                       m2m_log("server receive data : %s\n",p_recv_data->p_data);
+                 }
+            }
+            break;
+         default:
+             break;
     }
 
  }

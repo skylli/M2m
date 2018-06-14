@@ -55,11 +55,19 @@
 #define CHAR_2_INT(n,c)  n = (CHAR_BELONG(c,'0','9')?(c-'0'):( CHAR_BELONG(c, 'a', 'b')?(c-'a'+10):( CHAR_BELONG(c,'A','F')?(c-'A' + 10):n) ) )
 #define STR_2_INT_ARRAY(d,s,len) do{ int i=0; \
                                  for(i=0;i<len;i++){ CHAR_2_INT(d[i],s[i]);} }while(0)
+                                    
+#ifdef __cplusplus
+                                 extern "C"{
+#endif
 // util  tool
 void *mmalloc(size_t size);
 int mmemset(u8 *dst,u8 c,size_t n);
 
 void mfree(void *ptr);
 void mcpy(u8 *d,u8 *s,int len);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

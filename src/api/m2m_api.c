@@ -42,12 +42,12 @@ M2M_conf_T m2m_conf;
 **          p_host - 该 net 连接的 host. 没有上一级 host 则设置为 NULL.
 **          p_func - 该 net 接收到数据包的回调函数. 作为 server 时，net 接收到的包会触发该回调。
 **              注意： 收到发送给本 id 的包才会触发，其它包则丢弃，或者 直接转发.
-**              
+**         
 **********************/
-size_t m2m_net_creat( M2M_id_T *p_id,int port, int key_len,u8 *p_key,u8 *p_host, int hostport,m2m_func func, void *p_args){
+size_t m2m_net_creat( M2M_id_T *p_id,int port, int key_len, u8 *p_key, u8 *p_host, int hostport,m2m_func func, void *p_args){
 
     Net_Init_Args_T cmd;
-    
+    Net_T *p_n = NULL;
     m2m_log_debug("creating Net...");
     mmemset( (u8*) &cmd,0,sizeof(Net_Init_Args_T));
 
@@ -65,10 +65,9 @@ size_t m2m_net_creat( M2M_id_T *p_id,int port, int key_len,u8 *p_key,u8 *p_host,
     cmd.relay_en = m2m_conf.do_relay;
     cmd.max_router_tm = 6* (DEFAULT_INTERVAL_PING_TM_MS);
     cmd.hostport =  hostport;
-    
+
     // creat network
-    Net_T *p_n = net_creat(&cmd,0);
-    
+    p_n = net_creat(&cmd,0);
     m2m_log_debug("network <%p> have been creat.\n",p_n);
     return (size_t)p_n;
 }
@@ -79,6 +78,7 @@ size_t m2m_net_creat( M2M_id_T *p_id,int port, int key_len,u8 *p_key,u8 *p_host,
 M2M_Return_T m2m_net_destory(size_t net){
     if(net)
         net_destory((Net_T*)net);
+    return M2M_ERR_NOERR;
 }
 
 // 在 net 里创建一个会话
@@ -95,7 +95,7 @@ M2M_Return_T m2m_net_destory(size_t net){
 **         创建的 session。注意该调用会立即返回，但是此刻仅仅是在本地建立了 session，需要远端回应触发回调才能确定 session 建立成功。
 *************************/
 size_t m2m_session_creat(size_t net,M2M_id_T *p_id,u8 *p_host,int port, int key_len,u8 *p_key, m2m_func func, void *p_args){
-    int ret = 0;
+    //int ret = 0;
     Net_T *p_n = (Net_T*)net;
     Net_Args_T arg;
     arg.p_net = NULL;
@@ -260,6 +260,15 @@ M2M_Return_T m2m_broadcast_data_stop(Net_T *p_n){
     return ret;
 }
 
+void m2m_broadcast_enable(Net_T *p_n){
+    if(p_n)
+        p_n->broadcast_en = 1;
+}
+void m2m_broadcast_disable(Net_T *p_n){
+    if(p_n)
+        p_n->broadcast_en = 0;
+}
+
 #endif // CONF_BROADCAST_ENABLE
 // 发送数据 
 /*****************************************************
@@ -364,7 +373,7 @@ M2M_Return_T m2m_int(M2M_conf_T *p_conf){
 ** description: 注销整个 m2m，并退出
 *****************************************************/
 M2M_Return_T m2m_deint(void){
-
+    return 0;
 }
 
 #ifdef __cplusplus

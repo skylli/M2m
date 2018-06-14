@@ -62,6 +62,8 @@ M2M_Return_T m2m_broadcast_data_start(Net_T *p_n,int port,int len,u8 *p_data,m2m
 
 // 停止广播包的发送
 M2M_Return_T m2m_broadcast_data_stop(Net_T *p_n);
+void m2m_broadcast_enable(Net_T *p_n);
+void m2m_broadcast_disable(Net_T *p_n);
 
 #endif  //CONF_BROADCAST_ENABLE
 // 发送数据 

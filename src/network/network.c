@@ -472,7 +472,7 @@ static M2M_Return_T _net_host_ping(Net_T *p_net){
         Net_enc_T no_enc;
     
         mmemset((u8*)&cmd,0,sizeof(M2M_Proto_Cmd_Arg_T));
-        mmemset((u8*)&no_enc,0,sizeof(M2M_Proto_Cmd_Arg_T));
+        mmemset((u8*)&no_enc,0,sizeof(Net_enc_T));
         cmd.socket_fd = p_net->protocol.socket_fd;
         cmd.stoken = p_net->host.stoken;
         cmd.messageid = p_net->host.msgid++;
@@ -486,7 +486,7 @@ static M2M_Return_T _net_host_ping(Net_T *p_net){
         
         ret = ( p_net->protocol.func_proto_ioctl)( M2M_PROTO_IOC_CMD_PING_RQ, &cmd,0);
         m2m_debug_level( M2M_LOG_DEBUG,"net <%p> sending ping to host %s \n", p_net,p_net->host.p_host);
-        if(p_net->host.retransmit_count++ > 5){
+        if(p_net->host.retransmit_count++ > 3){
             p_net->host.next_ping_tm = _PING_INTERVAL_TM;
             p_net->host.retransmit_count = 0;
         
@@ -681,7 +681,7 @@ static M2M_Return_T _net_recv_handle_without_session
             break;
         case M2M_PROTO_CMD_PING_ACK:
             // update net ping time.
-            DEV_ID_LOG_PRINT(M2M_LOG_DEBUG,p_raw->src_id,"send ping ack to "," part");
+            m2m_bytes_dump("receive ping ack from id ", (u8*)&p_raw->src_id, sizeof(M2M_id_T));
             p_net->host.next_ping_tm = _PING_INTERVAL_TM;            
             break;
         case M2M_PROTO_CMD_TOKEN_RQ:
@@ -707,6 +707,8 @@ static M2M_Return_T _net_recv_handle_without_session
                 M2M_packet_T *p_ack_payload = NULL;
                 ret = p_net->func_arg.func( M2M_REQUEST_BROADCAST, &p_ack_payload, &p_dec->payload,p_net->func_arg.p_user_arg);
                 ret = net_ack( M2M_HTTP_OK, M2M_PROTO_CMD_BROADCAST_ACK, p_net, p_dec->ctoken , &enc, p_raw, p_ack_payload);
+                PACKET_FREE(p_ack_payload);
+                p_ack_payload = NULL;
             }
             break;
         case M2M_PROTO_CMD_BROADCAST_ACK:
@@ -763,7 +765,7 @@ static M2M_Return_T _net_recv_slave_hanle(Net_T *p_net,Session_T *p_s,M2M_proto_
     M2M_proto_dec_recv_pkt_T pkt_dec,*p_dec;
     M2M_packet_T ack_payload;
     M2M_dec_args_T dec_args;
-    u8 *p_ack_payload = NULL;
+    M2M_packet_T *p_ack_payload = NULL;
 
     mmemset((u8*)&pkt_dec, 0, sizeof(M2M_proto_dec_recv_pkt_T) );
     mmemset( (u8*)&ack_payload, 0, sizeof(M2M_packet_T));
@@ -825,7 +827,7 @@ static M2M_Return_T _net_recv_slave_hanle(Net_T *p_net,Session_T *p_s,M2M_proto_
                     ret =  p_net->func_arg.func( M2M_REQUEST_SET_SECRETKEY,&p_ack_payload, &p_dec->payload,p_net->func_arg.p_user_arg);
                     ret = net_ack( (u16)M2M_HTTP_OK, M2M_PROTO_IOC_CMD_SETKEY_ACK, p_net, \
                                     pkt_dec.ctoken, &p_s->enc, p_raw,(M2M_packet_T*)p_ack_payload);
-                    mfree(p_ack_payload);
+                    PACKET_FREE(p_ack_payload);
                     p_ack_payload = NULL;
                     // 刷新当前 session 的秘钥.
                     _net_secret_key_update( &p_s->enc, (u8*)p_dec->payload.p_data,p_dec->payload.len);
@@ -843,7 +845,7 @@ static M2M_Return_T _net_recv_slave_hanle(Net_T *p_net,Session_T *p_s,M2M_proto_
             p_s->messageid = p_dec->msgid;
             ret =  p_net->func_arg.func( M2M_REQUEST_DATA, &p_ack_payload, &p_dec->payload,p_net->func_arg.p_user_arg);
             ret = net_ack( (u16)M2M_HTTP_OK, M2M_PROTO_CMD_DATA_ACK, p_net, pkt_dec.ctoken, &p_s->enc, p_raw,(M2M_packet_T*)p_ack_payload);
-            mfree(p_ack_payload);
+            PACKET_FREE(p_ack_payload);
             p_ack_payload = NULL;
             break;
     }
@@ -988,7 +990,6 @@ static M2M_Return_T _net_recv_handle( Net_T *p_net){
 
     recv_rawpkt.payload.p_data = mmalloc( M2M_PROTO_PKT_MAXSIZE );
     _RETURN_EQUAL_0(recv_rawpkt.payload.p_data, M2M_ERR_NULL);
-    mmemset( (u8*)recv_rawpkt.payload.p_data, 0, M2M_PROTO_PKT_MAXSIZE);
 
     recv_rawpkt.payload.len = M2M_PROTO_PKT_MAXSIZE;
     recv_rawpkt.socket_fd = p_net->protocol.socket_fd;
@@ -1005,7 +1006,7 @@ static M2M_Return_T _net_recv_handle( Net_T *p_net){
         }
 #ifdef CONF_BROADCAST_ENABLE
     //处理广播包
-    if(recv_rawpkt.enc_type == M2M_ENC_TYPE_BROADCAST){
+    if( p_net->broadcast_en && recv_rawpkt.enc_type == M2M_ENC_TYPE_BROADCAST){
         ret = broadcast_recv_handle(p_net, &recv_rawpkt);
         goto RECV_HAND_END;
     }
@@ -1363,6 +1364,8 @@ static M2M_Return_T broadcast_recv_handle
                 M2M_packet_T *p_ack_payload = NULL;
                 ret = p_net->func_arg.func( M2M_REQUEST_BROADCAST, &p_ack_payload, &p_dec->payload,p_net->func_arg.p_user_arg);
                 ret = net_ack( M2M_HTTP_OK, M2M_PROTO_CMD_BROADCAST_ACK, p_net, p_dec->ctoken , &enc, p_raw, p_ack_payload);
+                PACKET_FREE(p_ack_payload);
+                p_ack_payload = NULL;
             }
             break;
 
@@ -1370,7 +1373,7 @@ static M2M_Return_T broadcast_recv_handle
             {
             Net_request_node_T *p_find = net_request_packet_find(p_net->p_request_hd,p_raw->stoken);
             if( p_find )
-                ret =  p_find->callback_arg.func( p_dec->code, NULL, &p_dec->payload, p_find->callback_arg.p_user_arg);
+                ret =  p_find->callback_arg.func( M2M_REQUEST_BROADCAST_ACK, NULL, &p_dec->payload, p_find->callback_arg.p_user_arg);
             }
             break;
     }
@@ -1481,6 +1484,7 @@ Net_T *net_creat( Net_Init_Args_T *p_arg,int flags){
     p_net->func_arg.func = p_arg->func_arg.func;
     p_net->func_arg.p_user_arg = p_arg->func_arg.p_user_arg;
     p_net->max_router_tm = p_arg->max_router_tm;
+    p_net->broadcast_en = 1; // enable broadcast.
     // key copy.
     ENC_ALLOC_COPY(p_net->enc,p_arg->enc);
     if( p_net->enc.keylen > 0 )

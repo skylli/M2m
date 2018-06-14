@@ -39,9 +39,9 @@ extern "C" {
 typedef char s8;
 #endif
 typedef unsigned char u8;
-typedef short s16;
+typedef signed short  s16;
 typedef unsigned short u16;
-typedef int s32;
+typedef signed int s32;
 typedef unsigned int u32;
 
 #else
@@ -49,13 +49,30 @@ typedef unsigned int u32;
 #pragma message("In 32Bit machine \n")
 
 // 基本类型
-typedef char s8;
-typedef unsigned char u8;
-typedef short s16;
-typedef unsigned short u16;
-typedef long s32;
-typedef unsigned long u32;
 
+#ifndef s8
+typedef  signed char s8;
+#endif
+
+#ifndef u8
+typedef unsigned char u8;
+#endif
+
+#ifndef s16
+typedef signed short s16;
+#endif
+
+#ifndef u16
+typedef unsigned short u16;
+#endif
+
+#ifndef s32
+typedef signed int s32;
+#endif 
+
+#ifndef u32 
+typedef unsigned int u32;
+#endif
 #endif // 32 bit or 64 bit
 
 

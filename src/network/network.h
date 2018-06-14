@@ -160,12 +160,12 @@ typedef struct NET_T{
     Net_enc_T enc;
     
     Net_request_node_T *p_request_hd;    // 所有的广播包.
-
+    u8 broadcast_en;
     size_t key_addr; // 秘钥保存的索引.
     u16 stoken_index;
     u16 ctoken_index;
     u32 max_router_tm;
-
+    
 #ifdef HAS_LINUX_MUTEX
     pthread_mutex_t locker;
 #endif

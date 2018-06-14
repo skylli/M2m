@@ -15,6 +15,10 @@
 #ifndef _APP_IMPLEMENT_H
 #define _APP_IMPLEMENT_H
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 /**********************************************
 ** description: 读取秘钥.
 ** args:    
@@ -58,5 +62,8 @@ M2M_Address_T *m2m_relay_id_find( void *p_r_list,M2M_id_T *p_id);
 int m2m_relay_list_update(void **pp,u32 max_tm);
 void m2m_relay_list_destory(void **pp_list_hd);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif //_APP_IMPLEMENT_H

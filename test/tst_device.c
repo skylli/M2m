@@ -12,6 +12,7 @@
 
 
 /** 设备端 配置 ***********************************************************/
+#define TST_LOCAL_HOST      DEFAULT_HOST
 #define TST_DEV_LOCAL_ID    (2)
 #define TST_DEV_LOCAL_PORT  DEFAULT_DEVICE_PORT
 #define TST_DEV_LOCAL_KEY   DEFAULT_DEVICE_KEY
@@ -23,7 +24,8 @@
 
 /*************************************************************/
 
-
+// todo
+int loop_count = 0;
 M2M_id_T device_id,server_id;
 void dev_callback(int code,M2M_packet_T **pp_ack_pkt, M2M_packet_T *p_recv_pkt,void *p_arg);
 
@@ -36,7 +38,8 @@ void main(void){
     int ret;
 
     device_id.id[ID_LEN -1] = TST_DEV_LOCAL_ID; // 
-
+    mmemset((u8*)&conf.host_id, 0, sizeof(M2M_T));
+    
     conf.def_enc_type = M2M_ENC_TYPE_AES128;
     conf.max_router_tm = 10*60*1000;
     conf.do_relay = 0;
@@ -48,7 +51,7 @@ void main(void){
         m2m_printf(" creat network failt !!\n");
         return ;
     }
-    while(1){
+    while(loop_count < 3){
         m2m_trysync( m2m.net );
     }
     
@@ -61,14 +64,15 @@ void dev_callback(int code,M2M_packet_T **pp_ack_data,M2M_packet_T *p_recv_data,
         case M2M_REQUEST_BROADCAST: 
             {
                  M2M_packet_T *p_ack = (M2M_packet_T*)mmalloc(sizeof(M2M_packet_T));
-                 p_ack->p_data = (u8*)mmalloc( sizeof( M2M_id_T) + 1 );
-                 p_ack->len = sizeof( M2M_id_T);
+                 p_ack->p_data = (u8*)mmalloc( sizeof( M2M_id_T) + strlen(TST_LOCAL_HOST) + 1 );
+                 p_ack->len = sizeof( M2M_id_T) + strlen(TST_LOCAL_HOST);
                  mcpy( (u8*)p_ack->p_data, (u8*)device_id.id, sizeof(M2M_id_T) );
-                 
+                 mcpy((u8*)&p_ack->p_data[sizeof(M2M_id_T)], TST_LOCAL_HOST, strlen(TST_LOCAL_HOST));
                  m2m_log_debug("server receive code = %d\n", code);
                  if( p_recv_data->len > 0 && p_recv_data->p_data){
                       m2m_log("server receive data : %s\n",p_recv_data->p_data);
                 }
+                 loop_count++;
                 *pp_ack_data = p_ack;
             }
             break;

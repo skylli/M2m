@@ -8,7 +8,7 @@
 //#define  PLATFORM_ESP   // esp8266 support.
 
 /* enable broadcast */
-//#define CONF_BROADCAST_ENABLE 
+#define CONF_BROADCAST_ENABLE 
 
 //#define C_HAS_FILE
 /** timeout  **/

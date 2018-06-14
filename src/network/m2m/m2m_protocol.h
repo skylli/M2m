@@ -8,6 +8,7 @@
 #define _M2M_PROTOCOL_H_
 #include "../../../include/m2m.h"
 #include "../../../include/util.h"
+#include "../../util/m2m_log.h"
 
 typedef struct NET_ENC_T{
     Encrypt_type_T type;
@@ -174,17 +175,17 @@ typedef enum M2M_PROTO_CMD_T{
 #define DEV_ADDR_PRINT(addr_in)  m2m_printf("Address:%u.%u.%u.%u",addr_in.ip[0], \
                                                 addr_in.ip[1], addr_in.ip[2],addr_in.ip[3])
                                                 
-#define DEV_INFO_PRINT(level,devid,devaddr,headlog) do{ \
+#define DEV_INFO_PRINT(level,devid,devaddr,headlog) if(level>= m2m_record_level_get()){do{ \
                                                     m2m_debug_level_noend(level,devid,headlog);\
-                                                    DEV_ADDR_PRINT(level,devaddr);}while(0)
+                                                    DEV_ADDR_PRINT(level,devaddr);}while(0);}
                                                     
-#define DEV_ID_LOG_PRINT(level,devid, head,format,...)   do{    DEV_ID_PRINT(level,devid,head);     \
-                                                                m2m_printf(format,##__VA_ARGS__);}while(0)
+#define DEV_ID_LOG_PRINT(level,devid, head,format,...)  if(level>= m2m_record_level_get()){ do{    DEV_ID_PRINT(level,devid,head);     \
+                                                                m2m_printf(format,##__VA_ARGS__);}while(0);}
                                                                 
-#define PKT_INFO_PRINT(level,msgid,cmd,ctoken,stoken,addr,hdlog)    do{ m2m_debug_level_noend(level,"%s :: ",hdlog);\
+#define PKT_INFO_PRINT(level,msgid,cmd,ctoken,stoken,addr,hdlog)    if(level>= m2m_record_level_get()){ do{ m2m_debug_level_noend(level,"%s :: ",hdlog);\
                                                                         m2m_printf("message  id= %x \t cmd = %x \t ctoken = %x \t stoken = %x \t",\
                                                                             msgid,cmd,ctoken,stoken); \
-                                                                        DEV_ADDR_PRINT(addr); m2m_printf("\r\n");}while(0)
+                                                                        DEV_ADDR_PRINT(addr); m2m_printf("\r\n");}while(0);}
 
 /*
 * Description:

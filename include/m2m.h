@@ -18,10 +18,10 @@ extern "C"
 #endif
 
 #define M2M_LOG_ALL    (0)
-#define M2M_LOG        (1)
-#define M2M_LOG_WARN   (2)
-#define M2M_LOG_ERROR  (3)
-#define M2M_LOG_DEBUG  (4)
+#define M2M_LOG_DEBUG  (1)
+#define M2M_LOG        (2)
+#define M2M_LOG_WARN   (3)
+#define M2M_LOG_ERROR  (4)
 
 #define m2m_printf  printf
 typedef enum M2M_BASE_CMD{
@@ -36,6 +36,7 @@ typedef enum M2M_RETURN_T
     M2M_REQUEST_DATA = 100, 
     M2M_REQUEST_SET_SECRETKEY = 101, 
     M2M_REQUEST_BROADCAST = 102,
+    M2M_REQUEST_BROADCAST_ACK = 103,
 /***************** http return *************************/
     M2M_HTTP_OK = 200,
     M2M_HTTP_CREATED = 201,
