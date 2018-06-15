@@ -40,14 +40,15 @@ FILE(GLOB SUBLIB_CRYPT ${SRC_PATH}/crypt/*.c)
 FILE(GLOB SUBLIB_NETWORK ${SRC_PATH}/network/*.c ${SRC_PATH}/network/m2m/*.c)
 FILE(GLOB SUBLIB_UTIL ${SRC_PATH}/util/*.c)
 FILE(GLOB SUBLIB_API ${SRC_PATH}/api/*.c)
-FILE(GLOB SUBLIB_API ${SRC_PATH}/api/*.c)
+FILE(GLOB SUBLIB_THREE_HADC ${PROJECT_SOURCE_DIR}/three_party/hadc_protocol/*.c)
+
 # 编译器配置
 set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb")
 set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
 
 # 生成共享库
-ADD_LIBRARY(${m2m_lib} STATIC ${SUBLIB_UTIL} ${SUBLIB_PLATFORM} ${SUBLIB_CRYPT} ${SUBLIB_NETWORK} ${SUBLIB_API} )
+ADD_LIBRARY(${m2m_lib} STATIC ${SUBLIB_UTIL} ${SUBLIB_PLATFORM} ${SUBLIB_CRYPT} ${SUBLIB_NETWORK} ${SUBLIB_API} ${SUBLIB_THREE_HADC})
 
 # sample 应用实例
 # If necessary, use the RELATIVE flag, otherwise each source file may be listed 

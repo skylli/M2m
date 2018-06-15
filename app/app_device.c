@@ -113,6 +113,7 @@ void dev_callback(int code,M2M_packet_T **pp_ack_data,M2M_packet_T *p_recv_data,
                 *pp_ack_data = p_ack;
             }
             break;
+
         default:
             if( p_recv_data && p_recv_data->len > 0 && p_recv_data->p_data){
                 m2m_log("receive data : %s\n",p_recv_data->p_data);
