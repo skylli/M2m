@@ -20,6 +20,7 @@ typedef struct NET_ENC_T{
 
 typedef struct M2M_PROTO_CMD_ARG_T{
     u8 messageid;
+    u8 protocol_msgid;
     u32 ctoken;
     u32 stoken;
     M2M_id_T src_id;
@@ -39,6 +40,7 @@ typedef struct M2M_PROTO_RECV_RAWPKT_T{
     M2M_id_T src_id;
 
     u8 msgid;
+    u8 protocol_msgid;
     int socket_fd;
     M2M_Address_T remote;
     Encrypt_type_T enc_type;
@@ -49,9 +51,9 @@ typedef struct M2M_PROTO_RECV_RAWPKT_T{
 typedef struct M2M_PROTO_DEC_RECV_PKT_T{
 
     Net_enc_T *p_enc;
-
     u8 cmd;
     u8 msgid;
+    u8 protocol_msgid;
     u16 code;
     u32 ctoken;
     M2M_packet_T payload;
@@ -124,7 +126,13 @@ typedef enum M2M_PROTO_IOCTL_CMD_T{
     
     M2M_PROTO_IOC_CMD_ONLINK_CHECK,
     M2M_PROTO_IOC_CMD_ONLINK_CHECK_ACK,
-    
+
+    M2M_PROTO_IOC_CMD_OBSERVER_START_RQ,
+    M2M_PROTO_IOC_CMD_OBSERVER_START_ACK,
+    M2M_PROTO_IOC_CMD_OBSERVER_STOP_RQ,
+    M2M_PROTO_IOC_CMD_OBSERVER_STOP_ACK,
+    M2M_PROTO_IOC_CMD_NOTIFY_PUSH_RQ,
+    M2M_PROTO_IOC_CMD_NOTIFY_PUSH_ACK,
     M2M_PROTO_IOC_CMD_MAX
 }M2M_Proto_Ioctl_Cmd_T;
 
@@ -158,6 +166,13 @@ typedef enum M2M_PROTO_CMD_T{
 
     M2M_PROTO_CMD_ONLINK_CHECK_RQ,
     M2M_PROTO_CMD_ONLINK_CHECK_ACK,
+    
+    M2M_PROTO_CMD_OBSERVER_START_RQ,
+    M2M_PROTO_CMD_OBSERVER_START_ACK,
+    M2M_PROTO_CMD_OBSERVER_STOP_RQ,
+    M2M_PROTO_CMD_OBSERVER_STOP_ACK,
+    M2M_PROTO_CMD_NOTIFY_PUSH_RQ,
+    M2M_PROTO_CMD_NOTIFY_PUSH_ACK,
     
     M2M_PROTO_CMD_ACK,
     

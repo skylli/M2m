@@ -68,6 +68,7 @@ typedef enum ENCRYPT_TYPT_T{
     M2M_ENC_TYPE_NOENC = 0,     // 目前只有 ping 包没有加密.
     M2M_ENC_TYPE_AES128,    // 4*32 bit key.
     M2M_ENC_TYPE_BROADCAST, // 广播包不需要加密.*/
+    M2M_ENC_TYPE_OBSERVER_AES128, // OBSERVER 需要加密. toto 非常糟糕的实现
     M2M_ENC_TYPE_MAX
 }Encrypt_type_T;
 

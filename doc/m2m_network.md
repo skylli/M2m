@@ -32,5 +32,7 @@ ping 用于维持连接，当底层协议为 tcp 时则没有发送 ping 的必�
 	- host 的 ping，host 为该 net 的server，需要维持与 server 的连接，当开启中转功能时，对于不是自己的包可以转发到 host。
 	- 每一个 session 均有对应的 ping，其目的是维持 session 的连接。
 	- 转发规则： 只有开启了转发的 net 才能转发，但是转发是单向的
-
+### observer 机制
+observer 用于数据的订阅，目前一个 session 使用 observer 就不能再发送其它请求，
+observer 的 notify 独占了session 的 messageid 用于去重。 client 接收到 observer 之后，后续的 notify 请求跟
 

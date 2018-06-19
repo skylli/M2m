@@ -28,7 +28,8 @@ typedef struct M2M_REQUEST_PKT_T{
     
     u8 messageid;
     u8 transmit_count;
-    
+    u8 protocol_msgid;
+
     M2M_Proto_Cmd_T cmd;
     u32 next_send_time;
     u32 register_time;
@@ -39,6 +40,15 @@ typedef struct M2M_REQUEST_PKT_T{
     
 }M2M_request_pkt_T;
 
+typedef struct M2M_OBSERVER_T{
+
+    struct M2M_OBSERVER_T *next;
+    u8 notify_idex;
+    u8 msgid;
+    
+    Func_arg callback_arg;
+    M2M_packet_T payload;
+}M2M_observer_T;
 
 typedef struct NET_REQUEST_NODE_T{
 
@@ -90,7 +100,6 @@ typedef struct SESSION_T{
     u32 last_alive_tm;      // 最近收发包的时间。
     
     M2M_request_pkt_T *p_request_head;
-    
 }Session_T;
 typedef enum M2M_NET_CMD_T{
 
@@ -109,6 +118,10 @@ typedef enum M2M_NET_CMD_T{
     M2M_NET_CMD_TRYSYNC,
     M2M_NET_CMD_ONLINE_CHECK,
     
+    M2M_NET_CMD_SESSION_OBSERVER_START,
+    M2M_NET_CMD_SESSION_OBSERVER_STOP,
+    M2M_NET_CMD_SESSION_NOTIFY_PUSH,
+
     M2M_NET_CMD_MAX
     
 }M2M_Net_Cmd_T;

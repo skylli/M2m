@@ -62,5 +62,12 @@ $ ./app_device   1  9528 111 0 127.0.0.1  9527
 $ ./app_client  2 9529 222 1 127.0.0.1 9528  111 sampleData 0 127.0.0.1  9527
 $
 ```
+### todo 
+#### Observer 订阅
 
+    - session 内单独链表维护 Observer 请求。
+    - 单个 session 多个 observer，同时不影响正常的请求。
+    - 通过 secret type 识别 observer. 
+#### server 业务服务器 
 
+    - 

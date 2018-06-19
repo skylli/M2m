@@ -281,7 +281,6 @@ void m2m_broadcast_disable(Net_T *p_n){
 *****************************************************/
 M2M_Return_T m2m_session_data_send(M2M_T *p_m2m,int len,u8 *p_data,m2m_func func, void *p_args){
     Net_Args_T arg;
-
     
     mmemset((u8*)&arg,0,sizeof(Net_Args_T));
     _NET_ARG_CPY(arg,p_m2m,func,p_args);
@@ -328,7 +327,88 @@ M2M_Return_T m2m_dev_online_check(Net_T *p_net, u8 *p_remoteHost, int remote_por
         return 0;
 
 }
+// 订阅
+// 注意 一个 session 用于 observer 之后不能进行其它传输，需要进行其它传输请额外建立 socket.
+/*****************************************************
+** description: 建立订阅
+** args:  建立订阅.
+**      1. p_m2m - 发送该请求的 net/session。
+**      2. p_len - 数据的长度.  p_data - 数据.
+**      2. p_user_func - 接收到对端响应时触发的回调函数.
+** return: 订阅是否建立成功.
+** 注意: m2m 并没有把事件具体化，具体订阅的事件和节点 由上层决定，m2m 仅仅提供方法.
+*****************************************************/
+M2M_Return_T m2m_session_observer_start(M2M_T *p_m2m,int len,u8 *p_data,m2m_func func, void *p_args){
+    Net_Args_T arg;
 
+    mmemset((u8*)&arg,0,sizeof(Net_Args_T));
+    _NET_ARG_CPY(arg,p_m2m,func,p_args);
+    
+    m2m_log_debug("session (%p) start to observer.", (void*)p_m2m->session);
+
+    arg.len = len;
+    arg.p_data = p_data;
+    arg.enc.type = M2M_ENC_TYPE_OBSERVER_AES128;
+
+    if(arg.p_net->ioctl_session)
+        return ( arg.p_net->ioctl_session( M2M_NET_CMD_SESSION_OBSERVER_START, &arg,0) );
+    else 
+        return 0;
+
+    return M2M_ERR_NOERR;
+}
+/*****************************************************
+** description: 取消订阅
+** args:
+**      1. p_m2m - 发送该请求的 net/session。
+** return: .
+** 注意: m2m 并没有把事件具体化，具体订阅的事件和节点 由上层决定，m2m 仅仅提供方法.
+*****************************************************/
+M2M_Return_T m2m_session_observer_stop(M2M_T *p_m2m){
+    Net_Args_T arg;
+    mmemset((u8*)&arg,0,sizeof(Net_Args_T));
+
+    arg.p_net = p_m2m->net;
+    arg.p_net = p_m2m->session;
+    arg.enc.type = M2M_ENC_TYPE_OBSERVER_AES128;
+    
+    m2m_log_debug("session (%p) stop observering.", (void*)p_m2m->session);
+
+    if(arg.p_net->ioctl_session)
+        return ( arg.p_net->ioctl_session( M2M_NET_CMD_SESSION_OBSERVER_STOP, &arg,0) );
+    else 
+        return 0;
+
+    return M2M_ERR_NOERR;
+}
+/*****************************************************
+** description: 产生一个推送
+** args:  
+**      1. p_m2m - 发送该请求的 net/session。
+**      2. p_len - 数据的长度.  p_data - 数据.
+** return: 推送是否成功.
+** 注意: 推送并没有回调，同时若有新的推送，旧有未发送成功的推送将被丢弃.
+*****************************************************/
+M2M_Return_T m2m_notify_push(M2M_T *p_m2m,int len,u8 *p_data){
+    Net_Args_T arg;
+    
+    mmemset((u8*)&arg,0,sizeof(Net_Args_T));
+
+    arg.p_net = p_m2m->net;
+    arg.p_s = p_m2m->session;
+    arg.enc.type = M2M_ENC_TYPE_OBSERVER_AES128;
+
+    m2m_log_debug("session (%p) pushing an notify", (void*)p_m2m->session);
+
+    arg.len = len;
+    arg.p_data = p_data;
+    if(arg.p_net->ioctl_session)
+        return ( arg.p_net->ioctl_session( M2M_NET_CMD_SESSION_NOTIFY_PUSH, &arg,0) );
+    else 
+        return 0;
+
+    return M2M_ERR_NOERR;
+}
 
 // 重发，接收处理，连接维持
 /*****************************************************

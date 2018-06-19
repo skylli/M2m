@@ -33,7 +33,7 @@
 #define _PROTO_LEN(oplen,pylen)  (  _PROTO_ROUTER_HDR_LEN + _PROTO_SECRET_APPENDLEN + _PROTO_COAP_SIZE(oplen,pylen) + pylen )
 
 #define _PROTO_ROUTER_SECRET_AES128(p_dst,p_src,src_len,p_enc,encdata_len,crc) do{                      \
-            encdata_len = _proto_m2m_enc( (u8*)p_dst, (u8*)p_src,(int)src_len,p_enc); \
+            encdata_len = _coap_enc( (u8*)p_dst, (u8*)p_src,(int)src_len,p_enc); \
             crc = crc8_count( p_dst,encdata_len); \
         }while(0)
 
@@ -78,14 +78,32 @@ typedef enum{
     COAP_OPT_ONLINKCHECK_ACK = 0X0B,
     COAP_OPT_BROADCAST_RQ  = 0X0C,
     COAP_OPT_BROADCAST_ACK = 0X0D,
+    COAP_OPT_OBSERVER_START_RQ = 0X0E,
+    COAP_OPT_OBSERVER_START_ACK = 0X0F,
+    COAP_OPT_OBSERVER_STOP_RQ = 0X10,
+    COAP_OPT_OBSERVER_STOP_ACK = 0X11,
+    COAP_OPT_NOTIFY_PUSH_RQ = 0X12,
+    COAP_OPT_NOTIFY_PUSH_ACK = 0X13,
     
     COAP_OPT_MAX
 
 }COAP_OPTION_TYPE;
 
-static M2M_Return_T _proto_m2m_opt_get(coap_pdu_t *p_pdu,u8 *opt_type,u8 **p_opt,u8 *opt_len);
+static M2M_Return_T _coap_opt_get(coap_pdu_t *p_pdu,u8 *opt_type,u8 **p_opt,u8 *opt_len){
+    
+    coap_opt_t *option;
+    coap_opt_iterator_t opt_iter;
+    coap_option_iterator_init((coap_pdu_t *)p_pdu, &opt_iter, COAP_OPT_ALL);
+    if((option = coap_option_next(&opt_iter))) 
+     {
+            *opt_type = opt_iter.type;
+            *p_opt = COAP_OPT_VALUE(option);
+            *opt_len = COAP_OPT_LENGTH(option);
+     }
+    return M2M_ERR_NOERR;
+}
 
-int _proto_m2m_enc(u8 *p_dst, u8 *p_src, int src_len,Net_enc_T *p_enc){
+int _coap_enc(u8 *p_dst, u8 *p_src, int src_len,Net_enc_T *p_enc){
 
     int ret = 0;
     
@@ -97,33 +115,23 @@ int _proto_m2m_enc(u8 *p_dst, u8 *p_src, int src_len,Net_enc_T *p_enc){
             mcpy( (u8*)p_dst, (u8*)p_src,src_len);
             ret = src_len;
             break;
-
+        
         case M2M_ENC_TYPE_AES128:
-            
+        case M2M_ENC_TYPE_OBSERVER_AES128:
             ret = data_enc( p_src,p_dst,src_len,p_enc->keylen,p_enc->p_enckey);
             break;
     }
     //m2m_bytes_dump("after encode data :", p_dst, ret);
     return ret;
 }
-/*
-* 建立 session.
-* 1.p_args 提供 socket fd 和 远端地址 ip/port.
-***
-***/
-int _proto_m2m_creat(M2M_Proto_Cmd_Arg_T *p_args,int flags){
-    
-}
-int _proto_m2m_destory(M2M_Proto_Cmd_Arg_T *p_args,int flags){
-    
-}
+
 /*********************************
 ** 1. 进行 coap 封包, coap header + option + payload.
 ** 2. 加密，计算 crc.
 ** 3. 释放 coap 包，并把整个的封包 发送出去.
 ** 4. 释放整个包.
 *********************************/
-static int router_package_creat(
+static int router_pkt_creat(
         u8 **pp_out_pkt,
         int *output_len,
         M2M_Proto_Cmd_Arg_T *p_args,
@@ -161,7 +169,7 @@ static int router_package_creat(
 #if 0
    {
         u8 opt_type ,opt_len, *p_opt;
-        _proto_m2m_opt_get(p_pdu,&opt_type,&p_opt,&opt_len);
+        _coap_opt_get(p_pdu,&opt_type,&p_opt,&opt_len);
          m2m_bytes_dump("opt  :", p_opt,opt_len);
     }
     coap_show_pdu(p_pdu);
@@ -180,7 +188,7 @@ static int router_package_creat(
 ** 3. 释放 coap 包，并把整个的封包 发送出去.
 ** 4. 释放整个包.
 *********************************/
-static int _proto_m2m_request_send(
+static int _pkt_rq_send(
         M2M_Proto_Cmd_Arg_T *p_args,
         u8 type, 
         u16 opt_len, 
@@ -216,7 +224,7 @@ static int _proto_m2m_request_send(
 #if 0
    {
         u8 opt_type ,opt_len, *p_opt;
-        _proto_m2m_opt_get(p_pdu,&opt_type,&p_opt,&opt_len);
+        _coap_opt_get(p_pdu,&opt_type,&p_opt,&opt_len);
          m2m_bytes_dump("opt  :", p_opt,opt_len);
     }
     coap_show_pdu(p_pdu);
@@ -236,41 +244,11 @@ static int _proto_m2m_request_send(
     return ret;
 }
 
-/*
-* 刷新 会话 ctoken.同时清零 message id
-*/
-int _proto_m2m_token_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
-
-    return _proto_m2m_request_send(p_args, COAP_OPT_TKT_RQ, 0, NULL,0, NULL);
-}
-
-int _proto_m2m_keyset_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
-
-    if( p_args->p_payload == 0 || p_args->payloadlen <= 0)
-        return M2M_ERR_PROTO_PKT_BUILD;
-
-    return _proto_m2m_request_send(p_args, COAP_OPT_KEYSET_RQ, p_args->payloadlen, p_args->p_payload,0, NULL);
-}
-/*
-* 刷新 会话 ctoken.同时清零 message id
-*/
-int _proto_m2m_data_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
-
-    return _proto_m2m_request_send(p_args, COAP_OPT_DATA_RQ,0, NULL,p_args->payloadlen, p_args->p_payload);
-}
-/**
-** ping 包
-**/
-static int _proto_m2m_ping_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
-
-    return _proto_m2m_request_send(p_args, COAP_OPT_PING_RQ, p_args->payloadlen, p_args->p_payload,0, NULL);
-}
-
 /**
 ** 应答， 不同类型的应答应该存放在 option 里。
 ** opt_type optiong type ; opt_len -- option's value len
 ****/
-static int _proto_m2m_ack_send( 
+static int _pkt_ack_send( 
     M2M_proto_ack_T *p_ack,
     u8 opt_type, 
     u16 opt_len, 
@@ -310,6 +288,81 @@ static int _proto_m2m_ack_send(
    mfree(p_pkt);
    return ret;
 }
+
+/*
+* 刷新 会话 ctoken.同时清零 message id
+*/
+int token_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
+
+    return _pkt_rq_send(p_args, COAP_OPT_TKT_RQ, 0, NULL,0, NULL);
+}
+static int token_ack(M2M_proto_ack_T *p_ack,int flags){
+
+    return _pkt_ack_send(p_ack,COAP_OPT_TKT_ACK,p_ack->payload.len,p_ack->payload.p_data,0,NULL);
+}
+
+int secretkey_set_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
+
+    if( p_args->p_payload == 0 || p_args->payloadlen <= 0)
+        return M2M_ERR_PROTO_PKT_BUILD;
+
+    return _pkt_rq_send(p_args, COAP_OPT_KEYSET_RQ, p_args->payloadlen, p_args->p_payload,0, NULL);
+}
+static int secretkey_set_ack(M2M_proto_ack_T *p_ack,int flags){
+
+    return _pkt_ack_send(p_ack,COAP_OPT_KEYSET_ACK,p_ack->payload.len,p_ack->payload.p_data,0,NULL);
+}
+
+/*
+* 刷新 会话 ctoken.同时清零 message id
+*/
+int data_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
+
+    return _pkt_rq_send(p_args, COAP_OPT_DATA_RQ,0, NULL,p_args->payloadlen, p_args->p_payload);
+}
+static int data_ack(M2M_proto_ack_T *p_ack,int flags){
+    //u8 opt = 0;
+    return _pkt_ack_send(p_ack,COAP_OPT_DATA_ACK,0,NULL,p_ack->payload.len,p_ack->payload.p_data);
+}
+/*
+* observer 发送
+*/
+int observer_start_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
+
+    return _pkt_rq_send(p_args, COAP_OPT_OBSERVER_START_RQ,0, NULL,p_args->payloadlen, p_args->p_payload);
+}
+static int observer_start_ack(M2M_proto_ack_T *p_ack,int flags){
+    //u8 opt = 0;
+    return _pkt_ack_send(p_ack,COAP_OPT_OBSERVER_START_ACK,0,NULL,p_ack->payload.len,p_ack->payload.p_data);
+}
+int observer_stop_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
+
+    return _pkt_rq_send(p_args, COAP_OPT_OBSERVER_STOP_RQ,0, NULL,p_args->payloadlen, p_args->p_payload);
+}
+static int observer_stop_ack(M2M_proto_ack_T *p_ack,int flags){
+    //u8 opt = 0;
+    return _pkt_ack_send(p_ack,COAP_OPT_OBSERVER_STOP_ACK,0,NULL,p_ack->payload.len,p_ack->payload.p_data);
+}
+int notify_push_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
+
+    return _pkt_rq_send(p_args, COAP_OPT_NOTIFY_PUSH_RQ,0, NULL,p_args->payloadlen, p_args->p_payload);
+}
+static int notify_push_ack(M2M_proto_ack_T *p_ack,int flags){
+    //u8 opt = 0;
+    return _pkt_ack_send(p_ack,COAP_OPT_NOTIFY_PUSH_ACK,0,NULL,p_ack->payload.len,p_ack->payload.p_data);
+}
+
+/**
+** ping 包
+**/
+static int ping_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
+
+    return _pkt_rq_send(p_args, COAP_OPT_PING_RQ, p_args->payloadlen, p_args->p_payload,0, NULL);
+}
+static int ping_ack(M2M_proto_ack_T *p_ack,int flags){
+
+    return _pkt_ack_send(p_ack,COAP_OPT_PING_ACK,p_ack->payload.len,p_ack->payload.p_data,0,NULL);
+}
 #if 0
 // 对 coap 包进行加密.
 static int coap_pkt_enc( Router_hdr_T **pp_r,
@@ -323,24 +376,8 @@ static int coap_pkt_enc( Router_hdr_T **pp_r,
   _COAP_SECRET_BUILD(p_r,p_ack->p_enc, payload_dec_len, p_pdu->hdr, p_pdu->length);
 }
 #endif
-static int _proto_m2m_token_ack(M2M_proto_ack_T *p_ack,int flags){
-
-    return _proto_m2m_ack_send(p_ack,COAP_OPT_TKT_ACK,p_ack->payload.len,p_ack->payload.p_data,0,NULL);
-}
-static int _proto_m2m_setkey_ack(M2M_proto_ack_T *p_ack,int flags){
-
-    return _proto_m2m_ack_send(p_ack,COAP_OPT_KEYSET_ACK,p_ack->payload.len,p_ack->payload.p_data,0,NULL);
-}
-static int _proto_m2m_ping_ack(M2M_proto_ack_T *p_ack,int flags){
-
-    return _proto_m2m_ack_send(p_ack,COAP_OPT_PING_ACK,p_ack->payload.len,p_ack->payload.p_data,0,NULL);
-}
-static int _proto_m2m_data_ack(M2M_proto_ack_T *p_ack,int flags){
-    //u8 opt = 0;
-    return _proto_m2m_ack_send(p_ack,COAP_OPT_DATA_ACK,0,NULL,p_ack->payload.len,p_ack->payload.p_data);
-}
-static int _proto_m2m_pkt_err_ack(M2M_proto_ack_T *p_ack,int flags){
-    return _proto_m2m_ack_send(p_ack,COAP_OPT_ERROR_ACK,0,NULL,p_ack->payload.len,p_ack->payload.p_data);
+static int error_ack(M2M_proto_ack_T *p_ack,int flags){
+    return _pkt_ack_send(p_ack,COAP_OPT_ERROR_ACK,0,NULL,p_ack->payload.len,p_ack->payload.p_data);
 }
 static int _recv_packet_illegal(Router_hdr_T *p_r){
 
@@ -354,7 +391,7 @@ static int _recv_packet_illegal(Router_hdr_T *p_r){
 /**********  接收处理 ************************************************************************/
 // socket 接收 目前只支持阻塞接收
 // 解码 路由层
-static int _proto_m2m_recvpkt(M2M_proto_recv_rawpkt_T *p_rawpkt,int flags){
+static int receive_pkt_parse(M2M_proto_recv_rawpkt_T *p_rawpkt,int flags){
 
     int ret = 0;
     int tmp = _PROTO_LEN(0,0);
@@ -383,24 +420,12 @@ static int _proto_m2m_recvpkt(M2M_proto_recv_rawpkt_T *p_rawpkt,int flags){
     DEV_ID_LOG_PRINT( M2M_LOG_DEBUG, p_rawpkt->dst_id,"--------->"," destion id\n");
     return ret;
 }
-static M2M_Return_T _proto_m2m_opt_get(coap_pdu_t *p_pdu,u8 *opt_type,u8 **p_opt,u8 *opt_len){
-    
-    coap_opt_t *option;
-    coap_opt_iterator_t opt_iter;
-    coap_option_iterator_init((coap_pdu_t *)p_pdu, &opt_iter, COAP_OPT_ALL);
-    if((option = coap_option_next(&opt_iter))) 
-     {
-            *opt_type = opt_iter.type;
-            *p_opt = COAP_OPT_VALUE(option);
-            *opt_len = COAP_OPT_LENGTH(option);
-     }
-    return M2M_ERR_NOERR;
-}
-static M2M_Return_T _proto_m2m_cmd_parse(coap_pdu_t *p_pdu_recv,M2M_proto_dec_recv_pkt_T *p_dec){
+
+static M2M_Return_T _pkt_cmd_dispatch(coap_pdu_t *p_pdu_recv,M2M_proto_dec_recv_pkt_T *p_dec){
     u8 opt_type,opt_len,opt_get = 0,payload_get = 0;
     size_t payload_len = 0;
     u8 *p_opt, *p_payload = NULL;
-    _proto_m2m_opt_get(p_pdu_recv,&opt_type,&p_opt,&opt_len);
+    _coap_opt_get(p_pdu_recv,&opt_type,&p_opt,&opt_len);
     switch( opt_type ){
             case COAP_OPT_DATA_RQ:
 
@@ -502,7 +527,7 @@ static M2M_Return_T _proto_m2m_cmd_parse(coap_pdu_t *p_pdu_recv,M2M_proto_dec_re
 // 对接收包进行解码
 // 注意 该函数会 malloc p_dec->payload, 所以后面必须手动 free p_dec->payload.
 // 返回长度
-static int _proto_m2m_dec( M2M_dec_args_T *p_a,int flags){
+static int pkt_dec( M2M_dec_args_T *p_a,int flags){
     // crc 计算
     int ret_dec = 0,ret = 0;
     M2M_proto_dec_recv_pkt_T *p_dec = p_a->p_dec;
@@ -558,7 +583,7 @@ static int _proto_m2m_dec( M2M_dec_args_T *p_a,int flags){
     // get message id.
     p_dec->msgid = p_pdu->hdr->id;
     // get cmd and payload.
-    _proto_m2m_cmd_parse(p_pdu,p_dec);
+    _pkt_cmd_dispatch(p_pdu,p_dec);
     
     //m2m_bytes_dump("decode payload: ", p_dec->payload.p_data, p_dec->payload.len);
     // destory the pdu. 
@@ -576,7 +601,7 @@ static M2M_Return_T broadcast_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
     M2M_Address_T remote_addr;
     u8 *p_pkt = NULL;
 
-    router_package_creat(&p_pkt,&send_len,p_args, COAP_OPT_BROADCAST_RQ, p_args->payloadlen, p_args->p_payload,0,NULL);
+    router_pkt_creat(&p_pkt,&send_len,p_args, COAP_OPT_BROADCAST_RQ, p_args->payloadlen, p_args->p_payload,0,NULL);
 
     // 使能 广播.
     broadcast_enable(p_args->socket_fd);
@@ -596,16 +621,16 @@ static M2M_Return_T broadcast_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
 }
 // 广播包无需任何的 协议封装以及加密.
 static M2M_Return_T broadcast_ack(M2M_proto_ack_T *p_ack, int flags){
-    return _proto_m2m_ack_send(p_ack, COAP_OPT_BROADCAST_ACK, p_ack->payload.len,p_ack->payload.p_data,0, NULL);
+    return _pkt_ack_send(p_ack, COAP_OPT_BROADCAST_ACK, p_ack->payload.len,p_ack->payload.p_data,0, NULL);
 }
 #endif  //CONF_BROADCAST_ENABLE
 
 int onlinkchek_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
 
-    return _proto_m2m_request_send(p_args, COAP_OPT_ONLINKCHECK_RQ,p_args->payloadlen, p_args->p_payload,0, NULL);
+    return _pkt_rq_send(p_args, COAP_OPT_ONLINKCHECK_RQ,p_args->payloadlen, p_args->p_payload,0, NULL);
 }
 static M2M_Return_T onlinkchek_ack(M2M_proto_ack_T *p_ack, int flags){
-    return _proto_m2m_ack_send(p_ack, COAP_OPT_ONLINKCHECK_ACK, p_ack->payload.len,p_ack->payload.p_data,0, NULL);
+    return _pkt_ack_send(p_ack, COAP_OPT_ONLINKCHECK_ACK, p_ack->payload.len,p_ack->payload.p_data,0, NULL);
 }
 
 static M2M_Return_T relay_package(M2M_protocol_relay_T *p_args,int flags){
@@ -625,33 +650,33 @@ m2m_func _m2m_protocol_funcTable[M2M_PROTO_CMD_MAX + 1] =
     //M2M_PROTO_IOC_CMD_SESSION_CREAT_ACK,
     NULL,
     //M2M_PROTO_IOC_CMD_TOKEN_RQ,
-    (m2m_func)_proto_m2m_token_rq,
+    (m2m_func)token_rq,
     //M2M_PROTO_IOC_CMD_TOKEN_ACK,
-    (m2m_func)_proto_m2m_token_ack,
+    (m2m_func)token_ack,
     //M2M_PROTO_IOC_CMD_SETKEY_RQ,
-    (m2m_func)_proto_m2m_keyset_rq, // 5
+    (m2m_func)secretkey_set_rq, // 5
     //M2M_PROTO_IOC_CMD_SETKEY_ACK,
-    (m2m_func)_proto_m2m_setkey_ack,
+    (m2m_func)secretkey_set_ack,
     //M2M_PROTO_IOC_CMD_PING_RQ,
-    (m2m_func)_proto_m2m_ping_rq,
+    (m2m_func)ping_rq,
     //M2M_PROTO_IOC_CMD_PING_ACK,
-    (m2m_func)_proto_m2m_ping_ack,
+    (m2m_func)ping_ack,
     //M2M_PROTO_IOC_CMD_DATA_RQ,
-    (m2m_func)_proto_m2m_data_rq,
+    (m2m_func)data_rq,
     //M2M_PROTO_IOC_CMD_DATA_ACK,
-    (m2m_func)_proto_m2m_data_ack,      // 10
+    (m2m_func)data_ack,      // 10
     //M2M_PROTO_IOC_CMD_SESSION_DESTORY_RQ,
     NULL,
     //M2M_PROTO_IOC_CMD_SESSION_DESTORY_ACK,
     NULL,
     //M2M_PROTO_IOC_CMD_RECVPKT_RQ,
-    (m2m_func)_proto_m2m_recvpkt,
+    (m2m_func)receive_pkt_parse,
     //M2M_PROTO_IOC_CMD_DECODE_PKT_RQ,   //对接收包进行分拆。
-    (m2m_func)_proto_m2m_dec,
+    (m2m_func)pkt_dec,
     // M2M_PROTO_IOC_CMD_ERR_PKT_RQ,      // 包解析层面出错，秘钥、crc、protocol 错误
-    (m2m_func)_proto_m2m_pkt_err_ack,       // 15
+    (m2m_func)error_ack,       // 15
     // M2M_PROTO_IOC_CMD_ERR_PKT_ACK,
-    (m2m_func)_proto_m2m_pkt_err_ack,
+    (m2m_func)error_ack,
     
 #ifdef CONF_BROADCAST_ENABLE 
     //M2M_PROTO_IOC_CMD_BROADCAST_SEND
@@ -666,6 +691,19 @@ m2m_func _m2m_protocol_funcTable[M2M_PROTO_CMD_MAX + 1] =
     (m2m_func)onlinkchek_rq,
     // M2M_PROTO_IOC_CMD_ONLINK_CHECK_ACK
     (m2m_func)onlinkchek_ack,
+    //M2M_PROTO_IOC_CMD_OBSERVER_START_RQ,
+    (m2m_func)observer_start_rq,
+    //M2M_PROTO_IOC_CMD_OBSERVER_START_ACK,
+    (m2m_func)observer_start_ack,
+    //M2M_PROTO_IOC_CMD_OBSERVER_STOP_RQ,
+    (m2m_func)observer_stop_rq,
+    //M2M_PROTO_IOC_CMD_OBSERVER_STOP_ACK,
+    (m2m_func)observer_stop_ack,
+    //M2M_PROTO_IOC_CMD_NOTIFY_PUSH_RQ,
+    (m2m_func)notify_push_rq,
+    //M2M_PROTO_IOC_CMD_NOTIFY_PUSH_ACK,
+    (m2m_func)notify_push_ack,
+    
     NULL
 };
 // 获取协议处理函数.
