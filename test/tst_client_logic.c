@@ -23,9 +23,9 @@
 #define TST_REMOTE_ID       (2)
 
 #define TST_SERVER_HOST     DEFAULT_HOST
-#define TST_SERVERT_PORT    DEFAULT_SERVER_PORT
+#define TST_SERVERT_PORT    DEFAULT_DEVICE_PORT
 #define TST_REMOTE_HOST     DEFAULT_HOST
-#define TST_REMOTE_PORT     DEFAULT_SERVER_PORT
+#define TST_REMOTE_PORT     DEFAULT_DEVICE_PORT
 #define TST_SECRET_KEY1     DEFAULT_DEVICE_KEY
 #define TST_SECRET_KEY2     "abcdefghijklnmmm"
 #define TST_DATA_STR  "sending test data."
@@ -48,8 +48,10 @@ enum{
     TST_DATA,
     TST_TOKEN,
     TST_KEYSET,
-    TST_TOTAL,
-    TST_MAX
+	TST_NET_KEY_SET,
+	TST_CONNT_STATUS,
+	TST_TOTAL,
+	TST_MAX
 }TEST_FUNCTIONS;
 int tst_ret[TST_MAX];
 char *tst_item_name[TST_MAX] = {
@@ -59,10 +61,12 @@ char *tst_item_name[TST_MAX] = {
 #ifdef CONF_BROADCAST_ENABLE
     "broadcast ",
 #endif // CONF_BROADCAST_ENABLE
-    "session creat"
+    "session creat",
+    "Net secret key set",
     "data transmission",
     "token update",
     "secret key setting",
+	"connection state",
     "Finaly function"
 };
 void test_callback(int code,M2M_packet_T **pp_ack_pkt, M2M_packet_T *p_recv_pkt,void *p_arg);
@@ -74,8 +78,9 @@ void test_onlineCheck_callback(int code,M2M_packet_T **pp_ack_pkt, M2M_packet_T 
 #define WAIT_UNTIL(n,c,net)   while(n != c){ \
                                  m2m_trysync(net);}
 int main(){
-    M2M_T m2m;
+    M2M_T m2m, hid;
     M2M_conf_T conf;
+	int connt_sta = 0;
     // configuretion.
     conf.do_relay = 0;
     conf.max_router_tm = 10*60*1000;
@@ -88,27 +93,35 @@ int main(){
     remote_id.id[ID_LEN -1] = TST_REMOTE_ID;
     int recv_flag = 0, recv_broadcast_flag = 0,setkey_flag = 0,token_flag = 0;
 
-    
+
+	mmemset((u8*)&hid, 0, sizeof(M2M_T) );
     /**1. 建立 network ********/
-    m2m.net = m2m_net_creat( &local_id, TST_LOCAL_PORT, strlen(TST_LOCAL_KEY),TST_LOCAL_KEY,TST_SERVER_HOST, TST_SERVERT_PORT, (m2m_func)test_callback,NULL);
+    m2m.net = m2m_net_creat( &local_id, TST_LOCAL_PORT, strlen(TST_LOCAL_KEY), TST_LOCAL_KEY, &remote_id, NULL, NULL, (m2m_func)test_callback,NULL);
     if( !m2m.net){
         m2m_log_error(" creat net failt !! \n");
         goto func_tst_end;
     }
     tst_ret[TST_NET_CREAT] = 1;
+	
+	ret = m2m_net_secretkey_set( m2m.net, &remote_id, TST_REMOTE_HOST, TST_REMOTE_PORT, 
+			(strlen(TST_SECRET_KEY1)),(TST_SECRET_KEY1),(strlen(TST_SECRET_KEY2)),(TST_SECRET_KEY2), (m2m_func)test_callback,&tst_ret[TST_NET_KEY_SET] );
+    WAIT_UNTIL(tst_ret[TST_NET_KEY_SET],1, m2m.net);
+	
+	return 0;
     /*2  在线设备查询 ***/
-    #if 1
-    m2m_dev_online_check((Net_T*) m2m.net, TST_SERVER_HOST, TST_SERVERT_PORT, &local_id, (m2m_func)test_onlineCheck_callback,&tst_ret[TST_ONLINE_CHECK]);
+    #if 0
+    m2m_dev_online_check( m2m.net, TST_SERVER_HOST, TST_SERVERT_PORT, &local_id, (m2m_func)test_onlineCheck_callback,&tst_ret[TST_ONLINE_CHECK]);
     WAIT_UNTIL(tst_ret[TST_ONLINE_CHECK],1, m2m.net);
     #endif
 
     /**2 发送广播包**********/
-#ifdef CONF_BROADCAST_ENABLE
-    ret = m2m_broadcast_data_start((Net_T*)m2m.net,TST_SERVERT_PORT,strlen(TES_BROADCAST_DATA),TES_BROADCAST_DATA,(m2m_func)test_callback,&tst_ret[TST_BORADCAST]);
+#if 0	
+//#ifdef CONF_BROADCAST_ENABLE
+    ret = m2m_broadcast_data_start( m2m.net,TST_SERVERT_PORT,strlen(TES_BROADCAST_DATA),TES_BROADCAST_DATA,(m2m_func)test_callback,&tst_ret[TST_BORADCAST]);
     WAIT_UNTIL(tst_ret[TST_BORADCAST],1, m2m.net);
     
     m2m_log("stop broadcast ...");
-    m2m_broadcast_data_stop((Net_T*) m2m.net);
+    m2m_broadcast_data_stop( m2m.net);
 #endif // CONF_BROADCAST_ENABLE
     /**3 创建会话*********/
     m2m.session = m2m_session_creat( m2m.net, &remote_id,TST_REMOTE_HOST, TST_REMOTE_PORT, strlen(TST_SECRET_KEY1),TST_SECRET_KEY1,(m2m_func)test_callback,&tst_ret[TST_SESSION_CREAT]);
@@ -125,10 +138,22 @@ int main(){
     }
     ret = m2m_session_secret_set( &m2m, (strlen(TST_SECRET_KEY2)),(TST_SECRET_KEY2), (m2m_func)test_callback,&tst_ret[TST_KEYSET]);
     WAIT_UNTIL(tst_ret[TST_KEYSET],1, m2m.net);
+	
     ret = m2m_session_token_update( &m2m, (m2m_func)test_callback,&tst_ret[TST_TOKEN]);
     WAIT_UNTIL(tst_ret[TST_TOKEN],1, m2m.net);
+//	M2M_Return_T m2m_net_secretkey_set(size_t net,M2M_id_T *p_id,u8 *p_host,int port, int key_len,u8 *p_key,int newkey_len, u8 *p_newkey,m2m_func func, void *p_args){
+	// set net secret key 
+	ret = m2m_net_secretkey_set( m2m.net, &remote_id, TST_REMOTE_HOST, TST_REMOTE_PORT, 
+			(strlen(TST_SECRET_KEY1)),(TST_SECRET_KEY1),(strlen(TST_SECRET_KEY2)),(TST_SECRET_KEY2), (m2m_func)test_callback,&tst_ret[TST_NET_KEY_SET] );
+    WAIT_UNTIL(tst_ret[TST_NET_KEY_SET],1, m2m.net);
+	
+	return 0;
+	// transmit data againt. 
     ret = m2m_session_data_send(&m2m, strlen(TST_DATA_STR), TST_DATA_STR, (m2m_func)test_callback ,&tst_ret[TST_TOTAL]);
     WAIT_UNTIL(tst_ret[TST_TOKEN],1, m2m.net);
+	// get connection status.
+	connt_sta = (int)m2m_session_connted(&m2m);
+	tst_ret[TST_CONNT_STATUS] = (int)m2m_session_connted(&m2m);
 func_tst_end:
 
     m2m_net_destory(m2m.net);
@@ -160,7 +185,7 @@ void test_callback(int code,M2M_packet_T **pp_ack_pkt, M2M_packet_T *p_recv_pkt,
         m2m_log("receive data : %s\n",p_recv_pkt->p_data);
         m2m_bytes_dump("recv dump : ",p_recv_pkt->p_data, p_recv_pkt->len);
     }
-    if(p_arg){
+    if( code > 0 && p_arg){
         *((int*) p_arg) = -1;
         if( code >= M2M_HTTP_OK )
             *((int*) p_arg) = 1;

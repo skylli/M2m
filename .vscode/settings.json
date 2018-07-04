@@ -4,5 +4,6 @@
         "*.ipp": "c",
         "system_error": "c",
         "array": "c"
-    }
+    },
+    "python.pythonPath": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python36\\python.exe"
 }

@@ -122,11 +122,12 @@ int mutiple_trysync_continue(TST_Mnet_item_T *p_ml){
 
 int mutiple_cmd_jump_rq( TST_Mnet_item_T *p_ml, int index){
 
-    M2M_id_T local_id, remote_id;
+    M2M_id_T local_id, remote_id, h_id;
     int ret  =0;
 
     mmemset( (u8*)&local_id, 0, sizeof( M2M_id_T));
     mmemset( (u8*)&remote_id, 0, sizeof( M2M_id_T));
+    mmemset( (u8*)&h_id, 0, sizeof( M2M_id_T));
     
     local_id.id[ID_LEN-1] = TST_MNET_APP_LOCAL_ID_START + index;
     remote_id.id[ ID_LEN-1 ] = TST_MNET_REMOTE_ID;
@@ -144,8 +145,8 @@ int mutiple_cmd_jump_rq( TST_Mnet_item_T *p_ml, int index){
             //break;
             
         case TST_MNET_CMD_NET_CREAT:
-            p_ml->m2m.net = m2m_net_creat(&local_id, (TST_MNET_LOCAL_PORT_START + index), strlen(TST_MNET_LOCAL_KEY), TST_MNET_LOCAL_KEY, \
-                                            TST_MNET_SERVER_HOST, TST_MNET_SERVERT_PORT,NULL, NULL);
+            p_ml->m2m.net = m2m_net_creat( &local_id, (TST_MNET_LOCAL_PORT_START + index), strlen(TST_MNET_LOCAL_KEY), TST_MNET_LOCAL_KEY, \
+                                           &h_id,TST_MNET_SERVER_HOST, TST_MNET_SERVERT_PORT,NULL, NULL);
             if( p_ml->m2m.net ){
                 
                 p_ml->result[TST_MNET_CMD_NET_CREAT] = 1;

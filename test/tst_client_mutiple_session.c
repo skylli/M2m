@@ -171,9 +171,10 @@ int mutiple_cmd_jump_rq(size_t p_net,TST_Mses_item_T *p_ml, int index){
 int main(void){
     int i=0, ret=0;
     size_t net = 0;
-    M2M_id_T local_id;
+    M2M_id_T local_id, h_id;
 
     mmemset( (u8*)&local_id, 0, sizeof( M2M_id_T));
+    mmemset( (u8*)&h_id, 0, sizeof( M2M_id_T));
     
     local_id.id[ ID_LEN-1] = TST_MSES_APP_LOCAL_ID_START;
     mmemset( (u8*)&msession, 0, sizeof(TST_Mses_item_T));
@@ -181,7 +182,7 @@ int main(void){
     
     m2m_int(NULL);
     net =  m2m_net_creat(&local_id,  TST_MSES_LOCAL_PORT_START, strlen(TST_MSES_LOCAL_KEY), TST_MSES_LOCAL_KEY, \
-                                            TST_MSES_SERVER_HOST, TST_MSES_SERVERT_PORT,NULL, NULL);
+                         &h_id,TST_MSES_SERVER_HOST, TST_MSES_SERVERT_PORT,NULL, NULL);
     while(1){
         // send reqeust .
         for(i=0; i<TST_MSES_MAX_NET;i++ )

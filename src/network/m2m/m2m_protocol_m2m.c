@@ -71,13 +71,16 @@ typedef enum{
     COAP_OPT_TKT_ACK    = 0X04,
     COAP_OPT_PING_RQ    = 0X05,
     COAP_OPT_PING_ACK   = 0X06,
-    COAP_OPT_KEYSET_RQ  = 0X07,
-    COAP_OPT_KEYSET_ACK = 0X08,
+    COAP_OPT_SESSION_KEYSET_RQ  = 0X07,
+    COAP_OPT_SESSION_KEYSET_ACK = 0X08,
     COAP_OPT_ERROR_ACK = 0X09,
     COAP_OPT_ONLINKCHECK_RQ  = 0X0A,
     COAP_OPT_ONLINKCHECK_ACK = 0X0B,
     COAP_OPT_BROADCAST_RQ  = 0X0C,
     COAP_OPT_BROADCAST_ACK = 0X0D,
+
+	COAP_OPT_NET_KETSET_RQ  = 0X0E,
+    COAP_OPT_NET_KETSET_ACK = 0X0F,
     
     COAP_OPT_MAX
 
@@ -249,7 +252,7 @@ int _proto_m2m_keyset_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
     if( p_args->p_payload == 0 || p_args->payloadlen <= 0)
         return M2M_ERR_PROTO_PKT_BUILD;
 
-    return _proto_m2m_request_send(p_args, COAP_OPT_KEYSET_RQ, p_args->payloadlen, p_args->p_payload,0, NULL);
+    return _proto_m2m_request_send(p_args, COAP_OPT_SESSION_KEYSET_RQ, p_args->payloadlen, p_args->p_payload,0, NULL);
 }
 /*
 * 刷新 会话 ctoken.同时清零 message id
@@ -329,7 +332,7 @@ static int _proto_m2m_token_ack(M2M_proto_ack_T *p_ack,int flags){
 }
 static int _proto_m2m_setkey_ack(M2M_proto_ack_T *p_ack,int flags){
 
-    return _proto_m2m_ack_send(p_ack,COAP_OPT_KEYSET_ACK,p_ack->payload.len,p_ack->payload.p_data,0,NULL);
+    return _proto_m2m_ack_send(p_ack,COAP_OPT_SESSION_KEYSET_ACK,p_ack->payload.len,p_ack->payload.p_data,0,NULL);
 }
 static int _proto_m2m_ping_ack(M2M_proto_ack_T *p_ack,int flags){
 
@@ -420,25 +423,20 @@ static M2M_Return_T _proto_m2m_cmd_parse(coap_pdu_t *p_pdu_recv,M2M_proto_dec_re
                 p_dec->cmd = M2M_PROTO_CMD_TOKEN_RQ;
                 break;
             case COAP_OPT_TKT_ACK:
-
-            
                 m2m_debug_level(M2M_LOG_DEBUG, "receive cmd = token request");
                 p_dec->cmd = M2M_PROTO_CMD_TOKEN_ACK;
                 opt_get = 1;
                 // get ctoken to payload.
                 break; 
-            case COAP_OPT_KEYSET_RQ:
-
-            
-            
-                m2m_debug_level(M2M_LOG_DEBUG, "receive cmd = setkey request");
-                p_dec->cmd = M2M_PROTO_CMD_SETKEY_RQ;
+            case COAP_OPT_SESSION_KEYSET_RQ:
+                m2m_debug_level(M2M_LOG_DEBUG, "receive cmd = session setkey request");
+                p_dec->cmd = M2M_PROTO_CMD_SESSION_SETKEY_SET_RQ;
                 opt_get = 1;
                 break;
-            case COAP_OPT_KEYSET_ACK:
+            case COAP_OPT_SESSION_KEYSET_ACK:
             
-                m2m_debug_level(M2M_LOG_DEBUG, "receive cmd = setkey ack");
-                p_dec->cmd = M2M_PROTO_CMD_SETKEY_ACK;
+                m2m_debug_level(M2M_LOG_DEBUG, "receive cmd = session setkey ack");
+                p_dec->cmd = M2M_PROTO_CMD_SESSION_SETKEY_SET_ACK;
                 break;
             case COAP_OPT_PING_RQ:
             
@@ -463,6 +461,18 @@ static M2M_Return_T _proto_m2m_cmd_parse(coap_pdu_t *p_pdu_recv,M2M_proto_dec_re
                 opt_get = 1;
                 m2m_debug_level(M2M_LOG_DEBUG, "receive cmd = Online check ack");
                 p_dec->cmd = M2M_PROTO_CMD_ONLINK_CHECK_ACK;
+                break;
+				
+			case COAP_OPT_NET_KETSET_RQ:
+                m2m_debug_level(M2M_LOG_DEBUG, "receive cmd = net secretkey set request");
+                p_dec->cmd = M2M_PROTO_CMD_NET_SETKEY_RQ;
+                opt_get = 1;
+                // get ctoken to payload.
+                break; 
+            case COAP_OPT_NET_KETSET_ACK:
+                m2m_debug_level(M2M_LOG_DEBUG, "receive cmd = net secretkey set request");
+                p_dec->cmd = M2M_PROTO_CMD_NET_SETKEY_ACK;
+                opt_get = 1;
                 break;
 
 #ifdef CONF_BROADCAST_ENABLE                
@@ -608,6 +618,15 @@ static M2M_Return_T onlinkchek_ack(M2M_proto_ack_T *p_ack, int flags){
     return _proto_m2m_ack_send(p_ack, COAP_OPT_ONLINKCHECK_ACK, p_ack->payload.len,p_ack->payload.p_data,0, NULL);
 }
 
+int net_secretsky_set_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
+
+    return _proto_m2m_request_send(p_args, COAP_OPT_NET_KETSET_RQ,p_args->payloadlen, p_args->p_payload,0, NULL);
+}
+
+static M2M_Return_T net_secretsky_set_ack(M2M_proto_ack_T *p_ack, int flags){
+    return _proto_m2m_ack_send(p_ack, COAP_OPT_NET_KETSET_ACK, p_ack->payload.len,p_ack->payload.p_data,0, NULL);
+}
+
 static M2M_Return_T relay_package(M2M_protocol_relay_T *p_args,int flags){
 
     if(!p_args || !p_args->p_payload)
@@ -628,9 +647,9 @@ m2m_func _m2m_protocol_funcTable[M2M_PROTO_CMD_MAX + 1] =
     (m2m_func)_proto_m2m_token_rq,
     //M2M_PROTO_IOC_CMD_TOKEN_ACK,
     (m2m_func)_proto_m2m_token_ack,
-    //M2M_PROTO_IOC_CMD_SETKEY_RQ,
+    //M2M_PROTO_IOC_CMD_SESSION_SETKEY_RQ,
     (m2m_func)_proto_m2m_keyset_rq, // 5
-    //M2M_PROTO_IOC_CMD_SETKEY_ACK,
+    //M2M_PROTO_IOC_CMD_SESSION_SETKEY_ACK,
     (m2m_func)_proto_m2m_setkey_ack,
     //M2M_PROTO_IOC_CMD_PING_RQ,
     (m2m_func)_proto_m2m_ping_rq,
@@ -662,6 +681,10 @@ m2m_func _m2m_protocol_funcTable[M2M_PROTO_CMD_MAX + 1] =
 
     // M2M_PROTO_IOC_CMD_RELAY
     (m2m_func)relay_package,
+   // M2M_PROTO_IOC_NET_SETKEY_RQ,
+	 (m2m_func) net_secretsky_set_rq,
+	// M2M_PROTO_IOC_NET_SETKEY_ACK,
+	 (m2m_func) net_secretsky_set_ack,
     // M2M_PROTO_IOC_CMD_ONLINK_CHECK
     (m2m_func)onlinkchek_rq,
     // M2M_PROTO_IOC_CMD_ONLINK_CHECK_ACK

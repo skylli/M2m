@@ -71,7 +71,6 @@ int main(int argc, char **argv){
     // get server host
         p_server_host = argv[5];
         sport = atoi(argv[6]);
-        mcpy((u8*) &dconf.host_id, (u8*)&s_id, sizeof(M2M_id_T));
     }
 
     m2m_bytes_dump("\n\tdevice id: ", d_id.id, sizeof(M2M_id_T));
@@ -85,7 +84,7 @@ int main(int argc, char **argv){
     }
 
     m2m_int(&dconf);
-    dm2m.net = m2m_net_creat(&d_id, dport, 16, p_key, p_server_host, sport, (m2m_func)dev_callback, &app_d_end);
+    dm2m.net = m2m_net_creat(&d_id, dport, 16, p_key, &s_id,p_server_host, sport, (m2m_func)dev_callback, &app_d_end);
     while(app_d_end){
        m2m_trysync(dm2m.net);
     }

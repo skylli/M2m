@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.6)
 # define project name
 project (M2m)
 # The version number.
-set(M2M_VERSION_MAJOR 1)
+set(M2M_VERSION_MAJOR 0)
 set(M2M_VERSION_MINOR 0)
 set(M2M_VERSION_PATCH 1) 
 
@@ -49,6 +49,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
 
 # 生成共享库
 ADD_LIBRARY(${m2m_lib} STATIC ${SUBLIB_UTIL} ${SUBLIB_PLATFORM} ${SUBLIB_CRYPT} ${SUBLIB_NETWORK} ${SUBLIB_API} ${SUBLIB_THREE_HADC})
+#ADD_LIBRARY(${m2m_lib} SHARED ${SUBLIB_UTIL} ${SUBLIB_PLATFORM} ${SUBLIB_CRYPT} ${SUBLIB_NETWORK} ${SUBLIB_API} ${SUBLIB_THREE_HADC})
 
 # sample 应用实例
 # If necessary, use the RELATIVE flag, otherwise each source file may be listed 

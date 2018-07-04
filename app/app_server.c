@@ -66,7 +66,7 @@ M2M_id_T *p_sid;
     m2m_printf("\t\n");
     
     m2m_int(&sconf);
-    sm2m.net = m2m_net_creat(&s_id, sport, 16, p_key, NULL, 0,(m2m_func)receivehandle, NULL);
+    sm2m.net = m2m_net_creat(&s_id, sport, 16, p_key, NULL, NULL, 0,(m2m_func)receivehandle, NULL);
     while(1){
         m2m_trysync(sm2m.net);
     }

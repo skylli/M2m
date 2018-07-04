@@ -33,12 +33,12 @@ void main(void){
     // 创建 net ， 谅解到远端服务器。
     // M2M_Return_T m2m_int(M2M_conf_T *p_conf);
     
-    M2M_T m2m;
+    M2M_T m2m, h_id;
     M2M_conf_T conf;
     int ret;
 
     device_id.id[ID_LEN -1] = TST_DEV_LOCAL_ID; // 
-    mmemset((u8*)&conf.host_id, 0, sizeof(M2M_T));
+    mmemset((u8*)&h_id, 0, sizeof(M2M_T));
     
     conf.def_enc_type = M2M_ENC_TYPE_AES128;
     conf.max_router_tm = 10*60*1000;
@@ -46,13 +46,14 @@ void main(void){
     ret = m2m_int(&conf);
 
     m2m.net = m2m_net_creat( &device_id,TST_DEV_LOCAL_PORT, strlen(TST_DEV_LOCAL_KEY),TST_DEV_LOCAL_KEY,\
-                            TST_DEV_SERVER_HOST, TST_DEV_SERVER_PORT,(m2m_func)dev_callback,NULL);
+                             &h_id,NULL, NULL,(m2m_func)dev_callback,NULL);
     if( m2m.net == 0 ){
         m2m_printf(" creat network failt !!\n");
         return ;
     }
-    while(loop_count < 3){
-        m2m_trysync( m2m.net );
+    //while(loop_count < 3){
+	while(1){
+		m2m_trysync( m2m.net );
     }
     
     m2m_net_destory(m2m.net);

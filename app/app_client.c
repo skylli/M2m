@@ -28,7 +28,7 @@ int main(int argc, char **argv){
     int i = 0, ret = 0;
     
     M2M_T m2m;
-    M2M_id_T l_id,r_id;
+    M2M_id_T l_id,r_id, h_id;
     int l_port,s_port,r_port;
     u8 l_key[20],r_key[20];
     int l_keylen = 0,r_keylen = 0;
@@ -37,6 +37,7 @@ int main(int argc, char **argv){
 
     mmemset((u8*)&l_id, 0, sizeof(M2M_id_T));
     mmemset((u8*)&r_id, 0, sizeof(M2M_id_T));
+    mmemset((u8*)&h_id, 0, sizeof(M2M_id_T));
     mmemset((u8*) l_key,0, 20);
     mmemset((u8*) r_key,0, 20);
         
@@ -80,7 +81,7 @@ int main(int argc, char **argv){
     r_port = atoi(argv[6]);
     // get local secret key
     r_keylen = strlen(argv[7]);
-    r_keylen = (r_keylen>16)?16:r_keylen;
+    r_keylen = (r_keylen >16)?16:r_keylen;
     mcpy( (u8*)r_key, (u8*)argv[7], r_keylen);
     r_keylen = 16;
     // get transmit data 
@@ -90,7 +91,7 @@ int main(int argc, char **argv){
 // 8  m2m_printf(" <server id > < server host> < server port> \n");
     if( argc >= 11){
         // get server id;
-        STR_2_INT_ARRAY( dconf.host_id.id, argv[4], strlen(argv[9]));
+        STR_2_INT_ARRAY( h_id.id, argv[9], strlen(argv[9]));
         // get server host
         p_server_host = argv[10];
         // get server port 
@@ -109,16 +110,16 @@ int main(int argc, char **argv){
 
     if(argc >= 11){
         m2m_printf("server port = %d\n", s_port);
-        m2m_bytes_dump("server id: ", dconf.host_id.id, sizeof(M2M_id_T));
+        m2m_bytes_dump("server id: ", &h_id, sizeof(M2M_id_T));
         m2m_printf("server host %s port %d\n", p_server_host, s_port);
     }
     
     // build net 
     m2m_int(&dconf);
     if(argc < 11)
-        m2m.net = m2m_net_creat(&l_id,l_port,l_keylen, l_key, NULL, 0, (m2m_func)app_callback, NULL);
+        m2m.net = m2m_net_creat(&l_id,l_port,l_keylen, l_key, NULL,NULL, 0, (m2m_func)app_callback, NULL);
     else 
-        m2m.net = m2m_net_creat(&l_id,l_port,l_keylen, l_key, p_server_host, s_port, (m2m_func)app_callback, NULL);
+        m2m.net = m2m_net_creat(&l_id,l_port,l_keylen, l_key, &h_id, p_server_host, s_port, (m2m_func)app_callback, NULL);
 
     if( !m2m.net ){
         m2m_printf("creat net failt !!\n");

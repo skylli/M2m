@@ -34,7 +34,8 @@ typedef enum M2M_RETURN_T
 {
 /************* request cmd  服务器 设备端 支持， 对于 发起会话的 app 端并不需支持******************************/
     M2M_REQUEST_DATA = 100, 
-    M2M_REQUEST_SET_SECRETKEY = 101, 
+    M2M_REQUEST_NET_SET_SECRETKEY = 101,     
+    M2M_REQUEST_SESSION_SET_SECRETKEY = 102, 
     M2M_REQUEST_BROADCAST = 102,
     M2M_REQUEST_BROADCAST_ACK = 103,
 /***************** http return *************************/
@@ -60,7 +61,8 @@ typedef enum M2M_RETURN_T
     M2M_ERR_IGNORE = -5,
     M2M_ERR_RETRANSMIT = -6,
     M2M_ERR_TIMEOUT     =-7,
-    
+	M2M_ERR_REQUEST_DESTORY	=-8,
+
     M2M_ERR_PROTO_PKT_BUILD = -13
 /*****************************************/
 }M2M_Return_T;
@@ -86,6 +88,7 @@ typedef enum M2M_SESSION_STA{
     M2M_SESSION_STA_HAS_TOKEN
     
 }M2M_session_Sta;
+
 typedef struct M2M_ADDRESS_T
 {
     u8 len;

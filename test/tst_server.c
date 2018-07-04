@@ -11,7 +11,7 @@
  /*******************
  ** It's an sample to show how to build an server use m2m library.
  ****/
- #define SERVER_HOST "192.168.0.222"
+ #define SERVER_HOST "127.0.0.1"
  #define REMOTE_HOST SERVER_HOST
  #define SERVER_PORT (9527)
  #define LOCAL_SECRET_KEY   "1234567890123456"
@@ -64,7 +64,7 @@
      M2M_Return_T ret = m2m_int(&conf);
  
      /** server init. creat an server. ********/
-     m2m.net = m2m_net_creat( &local_id,SERVER_PORT, strlen(DEFAULT_SERVER_KEY),DEFAULT_SERVER_KEY,NULL, 0, (m2m_func)receivehandle,NULL);
+     m2m.net = m2m_net_creat( &local_id,SERVER_PORT, strlen(DEFAULT_SERVER_KEY),DEFAULT_SERVER_KEY, NULL,NULL, 0, (m2m_func)receivehandle,NULL);
      if( !m2m.net){
          m2m_log_error(" creat net failt !! \n");
          return -1;

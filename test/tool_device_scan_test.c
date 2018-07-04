@@ -68,7 +68,7 @@ int main(){
     mmemset((u8*)&dev, 0, sizeof(DEV_info_T));
     
     /**1. 建立 network ********/
-    m2m.net = m2m_net_creat( &local_id, TOOL_LOCAL_PORT, strlen(TOOL_LOCAL_KEY), TOOL_LOCAL_KEY,NULL, 0, NULL,NULL);
+    m2m.net = m2m_net_creat( &local_id, TOOL_LOCAL_PORT, strlen(TOOL_LOCAL_KEY), TOOL_LOCAL_KEY, NULL,NULL, 0, NULL,NULL);
     if( !m2m.net){
         m2m_log_error(" creat net failt !! \n");
         return -1;
@@ -84,12 +84,12 @@ int main(){
 #ifdef CONF_BROADCAST_ENABLE
         mmemset((u8*)&dev, 0 , sizeof(DEV_info_T));
         dev.f_get_dev = 0;
-        ret = m2m_broadcast_data_start((Net_T*)m2m.net, TOOL_REMOTE_PORT,strlen( TOOL_BROADCAST_DATA), TOOL_BROADCAST_DATA,(m2m_func)tool_scan_callback,&dev);
+        ret = m2m_broadcast_data_start((size_t)m2m.net, TOOL_REMOTE_PORT,strlen( TOOL_BROADCAST_DATA), TOOL_BROADCAST_DATA,(m2m_func)tool_scan_callback,&dev);
         m2m_printf("scanding devices ...\n");
         WAIT_UNTIL(dev.f_get_dev,1, m2m.net);
         
         m2m_printf("stop broadcast ...\n");
-        m2m_broadcast_data_stop((Net_T*) m2m.net);
+        m2m_broadcast_data_stop( m2m.net);
 #endif // CONF_BROADCAST_ENABLE
         /**3 创建会话*********/
         dev.f_build_session = 0;
