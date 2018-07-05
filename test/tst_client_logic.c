@@ -27,7 +27,7 @@
 #define TST_REMOTE_HOST     DEFAULT_HOST
 #define TST_REMOTE_PORT     DEFAULT_DEVICE_PORT
 #define TST_SECRET_KEY1     DEFAULT_DEVICE_KEY
-#define TST_SECRET_KEY2     "abcdefghijklnmmm"
+#define TST_SECRET_KEY2     "00abcdefghijklnm11"
 #define TST_DATA_STR  "sending test data."
 
 #define TES_BROADCAST_DATA  "search device"
@@ -103,11 +103,6 @@ int main(){
     }
     tst_ret[TST_NET_CREAT] = 1;
 	
-	ret = m2m_net_secretkey_set( m2m.net, &remote_id, TST_REMOTE_HOST, TST_REMOTE_PORT, 
-			(strlen(TST_SECRET_KEY1)),(TST_SECRET_KEY1),(strlen(TST_SECRET_KEY2)),(TST_SECRET_KEY2), (m2m_func)test_callback,&tst_ret[TST_NET_KEY_SET] );
-    WAIT_UNTIL(tst_ret[TST_NET_KEY_SET],1, m2m.net);
-	
-	return 0;
     /*2  在线设备查询 ***/
     #if 0
     m2m_dev_online_check( m2m.net, TST_SERVER_HOST, TST_SERVERT_PORT, &local_id, (m2m_func)test_onlineCheck_callback,&tst_ret[TST_ONLINE_CHECK]);
@@ -147,7 +142,6 @@ int main(){
 			(strlen(TST_SECRET_KEY1)),(TST_SECRET_KEY1),(strlen(TST_SECRET_KEY2)),(TST_SECRET_KEY2), (m2m_func)test_callback,&tst_ret[TST_NET_KEY_SET] );
     WAIT_UNTIL(tst_ret[TST_NET_KEY_SET],1, m2m.net);
 	
-	return 0;
 	// transmit data againt. 
     ret = m2m_session_data_send(&m2m, strlen(TST_DATA_STR), TST_DATA_STR, (m2m_func)test_callback ,&tst_ret[TST_TOTAL]);
     WAIT_UNTIL(tst_ret[TST_TOKEN],1, m2m.net);

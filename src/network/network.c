@@ -717,7 +717,7 @@ static M2M_Return_T _net_recv_handle_without_session
     
     // 获取错误码.
     if( ret != 0){
-        net_ack( (u16)ret, M2M_PROTO_IOC_CMD_ERR_PKT_ACK, p_net->protocol.func_proto_ioctl , pkt_dec.ctoken, &enc, p_raw,NULL);
+        //net_ack( (u16)ret, M2M_PROTO_IOC_CMD_ERR_PKT_ACK, p_net->protocol.func_proto_ioctl , pkt_dec.ctoken, &enc, p_raw,NULL);
         m2m_debug_level(M2M_LOG_ERROR, "net <%p> receive package that can't decode.", p_net); 
         goto NO_SESSION_HANDLE_END;
     }
@@ -798,16 +798,19 @@ static M2M_Return_T _net_recv_handle_without_session
 			// 更新 net secret key.
 			if( p_raw->enc_type != M2M_ENC_TYPE_AES128)
 				break;
-			if(p_dec->payload.len >= sizeof( Net_enc_T) &&  p_dec->payload.p_data){
+			if(p_dec->payload.len >= sizeof( Net_enc_T) &&  p_dec->payload.p_data ){
 			    // 刷新 net 秘钥，
 				// 返回到应用层,应用层需要保存起来，再次开机时可以用得到。
+				Enc_T enc;
+				mmemset(&enc, 0, sizeof(Enc_T));
+				enc.type = M2M_ENC_TYPE_NOENC;
 				M2M_packet_T *p_ack_payload = NULL;
 				m2m_debug_level(M2M_LOG_DEBUG, "net (%p) receive new key.",p_net);
 				m2m_debug_level_noend(M2M_LOG_DEBUG, "session receive new key : ");
 				m2m_byte_print(p_dec->payload.p_data,p_dec->payload.len);
 				ret =  p_net->callback.func( M2M_REQUEST_NET_SET_SECRETKEY,&p_ack_payload, &p_dec->payload,p_net->callback.p_user_arg);
 				ret = net_ack( (u16)M2M_HTTP_OK, M2M_PROTO_IOC_NET_SETKEY_ACK, p_net->protocol.func_proto_ioctl, \
-				            pkt_dec.ctoken, &p_net->enc, p_raw,(M2M_packet_T*)p_ack_payload);
+				            pkt_dec.ctoken, &enc, p_raw,(M2M_packet_T*)p_ack_payload);
 				PACKET_FREE(p_ack_payload);
 				p_ack_payload = NULL;
 				// 刷新当前 session 的秘钥.
@@ -826,6 +829,8 @@ static M2M_Return_T _net_recv_handle_without_session
 						m2m_byte_print(p_dec->payload.p_data,p_dec->payload.len);
 						_USERFUNC_(p_find,p_dec,ret);
 					}
+				// destory it 		
+				LL_DELETE(p_net->p_request_hd, p_find);
 				net_request_packet_destory(&p_find);
             	}
 			}
@@ -981,6 +986,7 @@ static M2M_Return_T _net_recv_master_hanel(
     }
     // 续命
     //_session_aliveTime_update( p_s );
+	_connt_handle(&p_s->connt, M2M_CONNET_ON);
     switch(p_node->cmd){
         case M2M_PROTO_CMD_ERR_PKT_RQ:
         case M2M_PROTO_CMD_ERR_PKT_ACK:
@@ -1020,7 +1026,6 @@ static M2M_Return_T _net_recv_master_hanel(
             break;
         case M2M_PROTO_CMD_PING_RQ:
         // 延迟下一次ping 的时间.
-			_connt_handle(&p_s->connt, M2M_CONNET_ON);
             session_pingDelay(p_s);
             _ne_sendingId_increase(p_s);
             session_node_destory(&p_s->p_request_head,&p_node);
@@ -1226,7 +1231,7 @@ static M2M_Return_T net_trysync( Net_Args_T *p_args,int flags ){
     // 2. 重发处理.
     session_retransmit(p_net);
     // 3.连接维持.
-    //session_keepAlive(p_net);
+    session_keepAlive(p_net);
     // 广播、 onlink check 包发送.
     // 4. session 维护，清理僵尸 session.
     net_session_clearn(p_net);
