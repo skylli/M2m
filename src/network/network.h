@@ -41,7 +41,7 @@ typedef struct M2M_REQUEST_PKT_T{
     
     u8 messageid;
     u8 transmit_count;
-    
+	u8 extra_cmd;      // use with p_extra;
     M2M_Proto_Cmd_T cmd;
     u32 next_send_time;
     u32 register_time;
@@ -49,6 +49,7 @@ typedef struct M2M_REQUEST_PKT_T{
     u16 len;
     Func_arg callback_arg;
     u8 *p_proto_data;
+	void *p_extra;
     
 }M2M_request_pkt_T;
 
@@ -117,6 +118,10 @@ typedef enum M2M_NET_CMD_T{
     M2M_NET_CMD_SESSION_DATA_SEND,
     M2M_NET_CMD_SESSION_PING_SEND,    
     M2M_NET_CMD_SESSION_CONNT_CHECK,
+
+	M2M_NET_CMD_SESSION_OBSERVER_START,
+	M2M_NET_CMD_SESSION_OBSERVER_STOP,
+	M2M_NET_CMD_SESSION_NOTIFY_PUSH,
 
 #ifdef CONF_BROADCAST_ENABLE
     M2M_NET_CMD_BROADCAST_START,  // 开始 广播包
@@ -202,8 +207,8 @@ typedef struct  NET_ARGS_T{
     Net_Remot_Address_T remote;
     Net_enc_T enc;
     Func_arg callback;
-    
-    u16 len;
+	void *p_extra;
+	u16 len;
     void *p_data;
 }Net_Args_T;
 

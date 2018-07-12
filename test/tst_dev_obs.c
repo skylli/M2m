@@ -9,26 +9,34 @@
 #include "../config/config.h"
 #include "../include/app_implement.h"
 #include "../include/util.h"
-#include "tst_config.h"
 
 
 /** 设备端 配置 ***********************************************************/
-#define TST_LOCAL_HOST      DEFAULT_HOST
-#define TST_DEV_LOCAL_ID    (2)
-#define TST_DEV_LOCAL_PORT  DEFAULT_DEVICE_PORT
-#define TST_DEV_LOCAL_KEY   DEFAULT_DEVICE_KEY
+#define TST_DEVOBS_LOCAL_HOST      DEFAULT_HOST
+#define TST_DEVOBS_LOCAL_ID    (2)
+#define TST_DEVOBS_LOCAL_PORT  DEFAULT_DEVICE_PORT
+#define TST_DEVOBS_LOCAL_KEY   DEFAULT_DEVICE_KEY
 
-#define TST_DEV_SERVER_HOST DEFAULT_HOST
-#define TST_DEV_SERVER_PORT DEFAULT_SERVER_PORT
+#define TST_DEVOBS_SERVER_HOST DEFAULT_HOST
+#define TST_DEVOBS_SERVER_PORT DEFAULT_SERVER_PORT
 
+#define TST_DEVOBS_NOTIFY_PUS1	("abcd123")
 
 /*************************************************************/
-
+typedef struct DEV_OBS_T
+{
+	void *p_node;
+	int obs_rq_cnt;
+	int notify_cnt;
+	int reobserver_cnt;
+	BOOL reobserver_en;
+	BOOL notify_push_en;
+	BOOL exit;
+} Dev_obs_T;
 // todo
 int loop_count = 0;
 M2M_id_T device_id,server_id;
 void dev_callback(int code,M2M_packet_T **pp_ack_pkt, void *p_r,void *p_arg);
-void *p_obs_node = NULL;
 
 void main(void){
     // 创建 net ， 谅解到远端服务器。
@@ -37,17 +45,21 @@ void main(void){
     M2M_T m2m, h_id;
     M2M_conf_T conf;
     int ret;
+	Dev_obs_T obs;
+	u32 old_tm = 0;
 
-    device_id.id[ID_LEN -1] = TST_DEV_LOCAL_ID; // 
+    device_id.id[ID_LEN -1] = TST_DEVOBS_LOCAL_ID; // 
     mmemset((u8*)&h_id, 0, sizeof(M2M_T));
-    
+	mmemset(&obs, 0, sizeof(Dev_obs_T));
+	
     conf.def_enc_type = M2M_ENC_TYPE_AES128;
     conf.max_router_tm = 10*60*1000;
     conf.do_relay = 0;
     ret = m2m_int(&conf);
 
-    m2m.net = m2m_net_creat( &device_id,TST_DEV_LOCAL_PORT, strlen(TST_DEV_LOCAL_KEY),TST_DEV_LOCAL_KEY,\
-                             &h_id,NULL, NULL,(m2m_func)dev_callback,NULL);
+    m2m.net = m2m_net_creat( &device_id, TST_DEVOBS_LOCAL_PORT, strlen(TST_DEVOBS_LOCAL_KEY),TST_DEVOBS_LOCAL_KEY,\
+                             &h_id,NULL, NULL,(m2m_func)dev_callback,&obs);
+	
     if( m2m.net == 0 ){
         m2m_printf(" creat network failt !!\n");
         return ;
@@ -56,33 +68,37 @@ void main(void){
 	while(1){
 		m2m_trysync( m2m.net );
 #if 1
-		if( p_obs_node ){
-			m2m_session_notify_push( &m2m, p_obs_node, strlen(TCONF_NOTIFY_DATA1),TCONF_NOTIFY_DATA1, dev_callback, NULL);
-			p_obs_node = NULL;
+		if(obs.p_node && DIFF_(m2m_current_time_get(), old_tm) > 5000 ){
+			old_tm = m2m_current_time_get();
+			m2m_printf(">>>>>>>>>>\t start new notify");
+			m2m_session_notify_push( &m2m, obs.p_node, strlen(TST_DEVOBS_NOTIFY_PUS1),TST_DEVOBS_NOTIFY_PUS1, dev_callback, &obs);
+			obs.notify_push_en =0;
 		}
-#endif
-
-	
+		if(obs.exit )
+			break;
+#endif		
     }
     
     m2m_net_destory(m2m.net);
     m2m.net = 0;
 }
-void dev_callback(int code, M2M_packet_T **pp_ack_data, void *p_r,void *p_arg){
-
+void dev_callback(int code,M2M_packet_T **pp_ack_data,void *p_r, void *p_arg){
 	M2M_obs_payload_T *p_robs = NULL;
+	Dev_obs_T *p_devobs = NULL;
 	M2M_packet_T *p_recv_data = (M2M_packet_T*)p_r;
 
+	m2m_log("recv pointer %p", p_r);
+	m2m_log("receive code = %d", code);
     switch(code){
         case M2M_REQUEST_BROADCAST: 
             {
                  M2M_packet_T *p_ack = (M2M_packet_T*)mmalloc(sizeof(M2M_packet_T));
-                 p_ack->p_data = (u8*)mmalloc( sizeof( M2M_id_T) + strlen(TST_LOCAL_HOST) + 1 );
-                 p_ack->len = sizeof( M2M_id_T) + strlen(TST_LOCAL_HOST);
+                 p_ack->p_data = (u8*)mmalloc( sizeof( M2M_id_T) + strlen(TST_DEVOBS_SERVER_HOST) + 1 );
+                 p_ack->len = sizeof( M2M_id_T) + strlen(TST_DEVOBS_SERVER_HOST);
                  mcpy( (u8*)p_ack->p_data, (u8*)device_id.id, sizeof(M2M_id_T) );
-                 mcpy((u8*)&p_ack->p_data[sizeof(M2M_id_T)], TST_LOCAL_HOST, strlen(TST_LOCAL_HOST));
+                 mcpy((u8*)&p_ack->p_data[sizeof(M2M_id_T)], TST_DEVOBS_SERVER_HOST, strlen(TST_DEVOBS_SERVER_HOST));
                  m2m_log_debug("server receive code = %d\n", code);
-                 if( p_recv_data->len > 0 && p_recv_data->p_data){
+                 if( p_recv_data && p_recv_data->len > 0 && p_recv_data->p_data){
                       m2m_log("server receive data : %s\n",p_recv_data->p_data);
                 }
                  loop_count++;
@@ -91,10 +107,14 @@ void dev_callback(int code, M2M_packet_T **pp_ack_data, void *p_r,void *p_arg){
             break;
 		case M2M_REQUEST_OBSERVER_RQ:
 
-			if( !p_r)
+			if(!p_arg || !p_r)
 				break;
+			
+			p_devobs = (Dev_obs_T*) p_arg;  
 			p_robs = (M2M_obs_payload_T*) p_r;
-			p_obs_node = p_robs->p_obs_node;
+			p_devobs->p_node = p_robs->p_obs_node;
+			p_devobs->notify_push_en = 1;
+			p_devobs->obs_rq_cnt++;
 			m2m_log("receive an observer request.");
 			if(p_robs->p_payload->len && p_robs->p_payload->p_data){
 				m2m_log("request data: %s", p_robs->p_payload->p_data);
@@ -102,19 +122,30 @@ void dev_callback(int code, M2M_packet_T **pp_ack_data, void *p_r,void *p_arg){
 			break;
 		case M2M_ERR_OBSERVER_DISCARD:
 			m2m_log("observer have been destory.");
-			break;		
-		case M2M_REQUEST_NOTIFY_PUSH:
-			if( !p_r)
+			if(!p_arg || !p_r )
 				break;
+			p_devobs = (Dev_obs_T*) p_arg;  
+			p_robs = (M2M_obs_payload_T*) p_r;
+			p_devobs->p_node = p_robs->p_obs_node;			
+			p_devobs->exit = 1;
+			break;
+		
+		case M2M_REQUEST_NOTIFY_PUSH:
+			if(!p_arg || !p_r)
+				break;
+			
+
 			m2m_log("receive an notify request.");
 			if(p_robs->p_payload->len && p_robs->p_payload->p_data){
 				m2m_log("request data: %s", p_robs->p_payload->p_data);
 			}
-			break;		
-			
+			break;			
 		case M2M_REQUEST_NOTIFY_ACK:
+			if(!p_arg || !p_r )
+				break;
+			p_devobs = (Dev_obs_T*) p_arg;  
+			p_devobs->notify_push_en = 1;
 			break;
-
         default:
             break;
     }

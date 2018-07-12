@@ -11,6 +11,7 @@
 #include "../include/util.h"
 #include <stdlib.h>
 
+#include "tst_config.h"
 
 /*******************
 ** It's an sample to show how to build an client to send data request to server use m2m library.
@@ -46,8 +47,11 @@ enum{
 
     TST_SESSION_CREAT,
     TST_DATA,
-    TST_TOKEN,
+    TST_OBS_ON,
+    TST_NOTIFY,
+    TST_OBS_OFF,
     TST_KEYSET,
+    TST_TOKEN,
 	TST_NET_KEY_SET,
 	TST_CONNT_STATUS,
 	TST_TOTAL,
@@ -61,10 +65,14 @@ char *tst_item_name[TST_MAX] = {
 #ifdef CONF_BROADCAST_ENABLE
     "broadcast ",
 #endif // CONF_BROADCAST_ENABLE
-    "session creat",
-    "Net secret key set",
+    "session creat",    
     "data transmission",
+    "observer start",
+    "notify push",
+    "observer stop",
+	"session secret key update",
     "token update",
+	"Net secret key set",
     "secret key setting",
 	"connection state",
     "Finaly function"
@@ -92,7 +100,7 @@ int main(){
     local_id.id[ID_LEN -1] = TST_APP_LOCAL_ID; // 
     remote_id.id[ID_LEN -1] = TST_REMOTE_ID;
     int recv_flag = 0, recv_broadcast_flag = 0,setkey_flag = 0,token_flag = 0;
-
+	void *p_obs_node = NULL;
 
 	mmemset((u8*)&hid, 0, sizeof(M2M_T) );
     /**1. 建立 network ********/
@@ -131,7 +139,23 @@ int main(){
         if(tst_ret[TST_SESSION_CREAT] && tst_ret[TST_DATA] )
             break;
     }
-    ret = m2m_session_secret_set( &m2m, (strlen(TST_SECRET_KEY2)),(TST_SECRET_KEY2), (m2m_func)test_callback,&tst_ret[TST_KEYSET]);
+	/** 订阅***/
+	
+	p_obs_node = m2m_session_observer_start(&m2m, TYPE_ACK_MUST, strlen(TCONF_OBSERVER_DATA), TCONF_OBSERVER_DATA,(m2m_func)test_callback, &tst_ret[TST_OBS_ON]);
+    WAIT_UNTIL(tst_ret[TST_OBS_ON],1, m2m.net);
+
+	/** 推送***/	
+	m2m_printf("waitting notify...\n");
+	WAIT_UNTIL(tst_ret[TST_NOTIFY],1, m2m.net);
+	
+	m2m_printf("notify have receive...\n");
+	/** 取消订阅********/
+	if(p_obs_node){
+		ret = m2m_session_observer_stop(&m2m, p_obs_node);		
+		tst_ret[TST_OBS_OFF] = (ret == M2M_ERR_NOERR)?1:0;
+	}
+	
+	ret = m2m_session_secret_set( &m2m, (strlen(TST_SECRET_KEY2)),(TST_SECRET_KEY2), (m2m_func)test_callback,&tst_ret[TST_KEYSET]);
     WAIT_UNTIL(tst_ret[TST_KEYSET],1, m2m.net);
 	
     ret = m2m_session_token_update( &m2m, (m2m_func)test_callback,&tst_ret[TST_TOKEN]);
@@ -179,11 +203,24 @@ void test_callback(int code,M2M_packet_T **pp_ack_pkt, M2M_packet_T *p_recv_pkt,
         m2m_log("receive data : %s\n",p_recv_pkt->p_data);
         m2m_bytes_dump("recv dump : ",p_recv_pkt->p_data, p_recv_pkt->len);
     }
-    if( code > 0 && p_arg){
-        *((int*) p_arg) = -1;
-        if( code >= M2M_HTTP_OK )
-            *((int*) p_arg) = 1;
-        }
+	switch (code){
+		case M2M_REQUEST_NOTIFY_PUSH:
+			 if( p_recv_pkt->len == strlen(TCONF_NOTIFY_DATA1) && p_recv_pkt->p_data \
+			 	&& !memcmp(p_recv_pkt->p_data,TCONF_NOTIFY_DATA1 ,strlen(TCONF_NOTIFY_DATA1))){
+					   m2m_log("notify data : %s\n",p_recv_pkt->p_data);
+					   tst_ret[TST_NOTIFY] = 1;
+				 }
+			break;
+		default:
+		    if( code > 0 && p_arg){
+		        *((int*) p_arg) = -1;
+		        if( code >= M2M_HTTP_OK )
+		            *((int*) p_arg) = 1;
+	        }	
+			break;
+	}
+
+	
 } 
 int test_result(int *p_ret,u8 **p_name, int items){
     int i =0,test_result = 0;

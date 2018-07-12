@@ -394,6 +394,88 @@ M2M_Return_T m2m_session_data_send(M2M_T *p_m2m,int len,u8 *p_data,m2m_func func
         return 0;
 
 }
+// observer 数据发送 
+/*****************************************************
+** description: start observer
+** args:
+**      1. p_m2m - 发送 observer 请求的 net/session。
+**      2. p_len - 数据的长度.  p_data - 数据.
+**      2. p_user_func - 接收到对端响应时触发的回调函数.
+** return: 本地发送是否成功.
+*****************************************************/
+size_t  m2m_session_observer_start(M2M_T *p_m2m,Pkt_ack_type_T ack_type,int len,u8 *p_data,m2m_func func, void *p_args){
+    Net_Args_T arg;
+
+    mmemset((u8*)&arg,0,sizeof(Net_Args_T));
+    _NET_ARG_CPY(arg,p_m2m,func,p_args);
+    
+    m2m_log_debug("session (%p) start to observer.", (void*)p_m2m->session);
+
+    arg.len = len;
+    arg.p_data = p_data;
+	arg.p_extra = (void*)&ack_type;
+    if( arg.p_net->ioctl_session )
+        return (size_t)( arg.p_net->ioctl_session( M2M_NET_CMD_SESSION_OBSERVER_START, &arg,0) );
+    else 
+        return 0;
+}
+/*****************************************************
+** description: stop observer
+** args:
+**      1. p_m2m - 发送 observer 请求的 net/session。
+**      2. p_obserindex: observer 节点的指针
+**      2. p_user_func - 接收到对端响应时触发的回调函数.
+** return: 本地发送是否成功.
+*****************************************************/
+M2M_Return_T m2m_session_observer_stop(M2M_T *p_m2m, void *p_obserindex){
+    Net_Args_T arg;
+	
+	mmemset((u8*)&arg,0,sizeof(Net_Args_T));
+	arg.p_net = (Net_T*)p_m2m->net;
+	arg.p_s = (Net_T*)p_m2m->session;
+	arg.p_extra = (void*)p_obserindex;
+
+    m2m_log_debug("session (%p) stoping observer [%p].", (void*)p_m2m->session, p_obserindex);
+
+	if(!p_obserindex){
+		m2m_log_warn("Can't find observer index to stop !!",p_obserindex);
+		return M2M_ERR_INVALID;
+	}
+	if(arg.p_net->ioctl_session)
+        return ( arg.p_net->ioctl_session( M2M_NET_CMD_SESSION_OBSERVER_STOP, &arg,0) );
+    else 
+        return 0;
+}
+/*****************************************************
+** description: push an notify to observer
+** args:
+**      1. p_m2m - 发送 observer 请求的 net/session。
+**		2. len: 推送数据的长度； p_data: 推送的数据;
+**      2. p_obserindex: observer 节点的指针
+**      2. p_user_func - 接收到对端响应时触发的回调函数.
+** return: 本地发送是否成功.
+*****************************************************/
+M2M_Return_T m2m_session_notify_push(M2M_T *p_m2m, void *p_obserindex,int len,u8 *p_data,m2m_func func, void *p_args){
+    Net_Args_T arg;
+
+	if(!p_obserindex){
+		m2m_log_warn("Can't find observer index to stop !!",p_obserindex);
+		return M2M_ERR_INVALID;
+	}
+	
+	mmemset((u8*)&arg,0,sizeof(Net_Args_T));
+	
+	arg.len = len;
+    arg.p_data = p_data;
+	arg.p_extra = (void*)p_obserindex;
+    _NET_ARG_CPY(arg,p_m2m,func,p_args);
+
+	m2m_log_debug("node [%p] pushing notify", p_obserindex);
+	if(arg.p_net->ioctl_session)
+        return ( arg.p_net->ioctl_session( M2M_NET_CMD_SESSION_NOTIFY_PUSH, &arg,0) );
+    else 
+        return 0;
+}
 //  查询对应的设备是否在线
 /*****************************************************
 ** description: 设备在线查询

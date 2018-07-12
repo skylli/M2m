@@ -62,7 +62,7 @@
     
     /** config m2m *****/
      M2M_Return_T ret = m2m_int(&conf);
- 
+
      /** server init. creat an server. ********/
      m2m.net = m2m_net_creat( &local_id,SERVER_PORT, strlen(DEFAULT_SERVER_KEY),DEFAULT_SERVER_KEY, NULL,NULL, 0, (m2m_func)receivehandle,NULL);
      if( !m2m.net){

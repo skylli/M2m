@@ -81,10 +81,29 @@
             ]
         },
         {
-            "name": "(gdb) test_device",
+            "name": "(gdb) tst_dev_obs",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/home/derry/github/m2m/bin/tst_device",
+            "program": "/home/derry/github/m2m/bin/tst_dev_obs",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) test_cli_obs",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/home/derry/github/m2m/bin/tst_cli_obs",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

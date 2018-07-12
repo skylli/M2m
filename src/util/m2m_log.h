@@ -20,10 +20,10 @@
 /** config end***************************/
 static const char *s_debug[] = {
         "[ ALL ]",
+        "[DEBUG]",
         "[ LOG ]",
         "[WARN ]",
         "[ERROR]",
-        "[DEBUG]"
     };
 
 extern u8 g_log_level;

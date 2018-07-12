@@ -76,12 +76,61 @@ BOOL m2m_session_connted(M2M_T *p_m2m);
 BOOL m2m_net_connted(size_t p);
 M2M_Return_T m2m_net_secretkey_set(size_t net,M2M_id_T *p_id,u8 *p_host,int port, int key_len,u8 *p_key,int newkey_len, u8 *p_newkey,m2m_func func, void *p_args);
 
+// observer 数据发送 
+/*****************************************************
+** description: start observer
+** args:
+**      1. p_m2m - 发送 observer 请求的 net/session。
+**      2. p_len - 数据的长度.  p_data - 数据.
+**      2. p_user_func - 接收到对端响应时触发的回调函数.
+** return: 本地发送是否成功.
+*****************************************************/
+size_t  m2m_session_observer_start(M2M_T *p_m2m,Pkt_ack_type_T ack_type,int len,u8 *p_data,m2m_func func, void *p_args);
+
+/*****************************************************
+** description: stop observer
+** args:
+**      1. p_m2m - 发送 observer 请求的 net/session。
+**      2. p_obserindex: observer 节点的指针
+**      2. p_user_func - 接收到对端响应时触发的回调函数.
+** return: 本地发送是否成功.
+*****************************************************/
+M2M_Return_T m2m_session_observer_stop(M2M_T *p_m2m, void *p_obserindex);
+/*****************************************************
+** description: push an notify to observer
+** args:
+**      1. p_m2m - 发送 observer 请求的 net/session。
+**		2. len: 推送数据的长度； p_data: 推送的数据;
+**      2. p_obserindex: observer 节点的指针
+**      2. p_user_func - 接收到对端响应时触发的回调函数.
+** return: 本地发送是否成功.
+*****************************************************/
+M2M_Return_T m2m_session_notify_push(M2M_T *p_m2m, void *p_obserindex,int len,u8 *p_data,m2m_func func, void *p_args);
 
 
 // todo
 //M2M_Return_T m2m_session_observer(M2M_T *p_m2m,m2m_func func,void *p_args,int len,u8 *p_data);
 // 路由
-
+/** callback sample api *******************************************************************************/
+/*****************************************************
+** description: handle notify callback function.
+** args:
+**      1. code:	M2M_REQUEST_NOTIFY_PUSH - receive an new notify.
+**				 	M2M_REQUEST_NOTIFY_ACK - notify push ack.
+**      2. pp_ack_data - ack to the remoter witch have been push the notify.
+**      2. p_robs - include receive payload and pointer that deal with the notify.
+** 
+*****************************************************/
+void sample_notify_handle_callback(int code,M2M_packet_T **pp_ack_data,M2M_obs_payload_T *p_robs, void *p_arg);
+/*****************************************************
+** description: 除非特别指明，否则 m2m 均会以该形式为回调函数的格式。
+** args:
+**      1. code:	
+**      2. pp_ack_data - 输出用，指向包含 ack 的数据，sdk 底层发出 ack 后会释放该结构。
+**      2. p_recv_pkt - 接受的数据，应用层无需释放.
+** 
+*****************************************************/
+void sample_normal_callback(int code,M2M_packet_T **pp_ack_pkt, M2M_packet_T *p_recv_pkt,void *p_arg);
 
 #ifdef __cplusplus
 }
