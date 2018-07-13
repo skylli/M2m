@@ -32,7 +32,7 @@
               M2M_packet_T *p_ack = mmalloc(sizeof(M2M_packet_T));
               p_ack->p_data = mmalloc( strlen(SERVER_ID) + 1 );
               p_ack->len = strlen(SERVER_ID);
-              mcpy( (u8*)p_ack->p_data, SERVER_ID, strlen(SERVER_ID));
+              mcpy( (u8*)p_ack->p_data, (u8*)SERVER_ID, strlen(SERVER_ID));
               
               m2m_log_debug("server receive code = %d\n", code);
               if( p_recv_data->len > 0 && p_recv_data->p_data){
@@ -66,7 +66,7 @@
      M2M_Return_T ret = m2m_int(&conf);
 
      /** server init. creat an server. ********/
-     m2m.net = m2m_net_creat( &local_id,SERVER_PORT, strlen(TCONF_SERVER_KEY),TCONF_SERVER_KEY, NULL,NULL, 0, (m2m_func)receivehandle,NULL);
+     m2m.net = m2m_net_creat( &local_id,SERVER_PORT, strlen(TCONF_SERVER_KEY),(u8*)TCONF_SERVER_KEY, NULL,NULL, 0, (m2m_func)receivehandle,NULL);
      if( !m2m.net){
          m2m_log_error(" creat net failt !! \n");
          return -1;

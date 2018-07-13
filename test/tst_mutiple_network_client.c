@@ -149,8 +149,8 @@ int mutiple_cmd_jump_rq( TST_Mnet_item_T *p_ml, int index){
             //break;
             
         case TST_MNET_CMD_NET_CREAT:
-            p_ml->m2m.net = m2m_net_creat( &local_id, (TST_MNET_LOCAL_PORT_START + index), strlen(TST_MNET_LOCAL_KEY), TST_MNET_LOCAL_KEY, \
-                                           &h_id,TST_MNET_SERVER_HOST, TST_MNET_SERVERT_PORT,NULL, NULL);
+            p_ml->m2m.net = m2m_net_creat( &local_id, (TST_MNET_LOCAL_PORT_START + index), strlen(TST_MNET_LOCAL_KEY), (u8*)TST_MNET_LOCAL_KEY, \
+                                           &h_id,(u8*)TST_MNET_SERVER_HOST, TST_MNET_SERVERT_PORT,NULL, NULL);
             if( p_ml->m2m.net ){
                 
                 p_ml->result[TST_MNET_CMD_NET_CREAT] = 1;
@@ -169,14 +169,14 @@ int mutiple_cmd_jump_rq( TST_Mnet_item_T *p_ml, int index){
             p_ml->respon_indx = p_ml->rq_indx;
             //break;
        case TST_MNET_CMD_SESSION_CREAT:
-            p_ml->m2m.session = m2m_session_creat( p_ml->m2m.net, &remote_id, TST_MNET_REMOTE_HOST, TST_MNET_REMOTE_PORT,\
-                                                   strlen(TST_MNET_REMOTE_SECRET_KEY), TST_MNET_REMOTE_SECRET_KEY,(m2m_func)test_mnet_callback, p_ml);
+            p_ml->m2m.session = m2m_session_creat( p_ml->m2m.net, &remote_id, (u8*)TST_MNET_REMOTE_HOST, TST_MNET_REMOTE_PORT,\
+                                                   strlen(TST_MNET_REMOTE_SECRET_KEY), (u8*)TST_MNET_REMOTE_SECRET_KEY,(m2m_func)test_mnet_callback, p_ml);
             if( p_ml->m2m.session){
                 p_ml->respon_indx = p_ml->rq_indx;
             }
             break;
         case TST_MNET_CMD_DATA:
-            ret = m2m_session_data_send( &p_ml->m2m, strlen(TST_MNET_DATA_STR), TST_MNET_DATA_STR,(m2m_func)test_mnet_callback, p_ml );
+            ret = m2m_session_data_send( &p_ml->m2m, strlen(TST_MNET_DATA_STR), (u8*)TST_MNET_DATA_STR,(m2m_func)test_mnet_callback, p_ml );
             p_ml->respon_indx = p_ml->rq_indx;
             break;
         case TST_MNET_CMD_TOKEN:

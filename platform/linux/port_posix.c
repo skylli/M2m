@@ -258,6 +258,7 @@ u32 m2m_get_random(){
 int broadcast_enable(int socket_fd){
     int opt= 1;
     setsockopt(socket_fd, SOL_SOCKET, SO_BROADCAST, (char *)&opt, sizeof(opt));
+    return 0;
 }
 int get_bcast_list(u32 *list, int maxlen)
 {

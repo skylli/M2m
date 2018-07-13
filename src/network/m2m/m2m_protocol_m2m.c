@@ -114,7 +114,9 @@ int _proto_m2m_enc(u8 *p_dst, u8 *p_src, int src_len,Net_enc_T *p_enc){
 
         case M2M_ENC_TYPE_AES128:
             
-            ret = data_enc( p_src,p_dst,src_len,p_enc->keylen,p_enc->p_enckey);
+            ret = data_enc( (const char*)p_src, (char*)p_dst,src_len,p_enc->keylen,p_enc->p_enckey);
+            break;
+        default:
             break;
     }
     //m2m_bytes_dump("after encode data :", p_dst, ret);
@@ -126,10 +128,10 @@ int _proto_m2m_enc(u8 *p_dst, u8 *p_src, int src_len,Net_enc_T *p_enc){
 ***
 ***/
 int _proto_m2m_creat(M2M_Proto_Cmd_Arg_T *p_args,int flags){
-    
+    return 0;
 }
 int _proto_m2m_destory(M2M_Proto_Cmd_Arg_T *p_args,int flags){
-    
+    return 0;
 }
 /*********************************
 ** 1. 进行 coap 封包, coap header + option + payload.
@@ -297,7 +299,7 @@ int observer_rq(M2M_Proto_Cmd_Arg_T *p_args,int flags){
 	_RETURN_EQUAL_0(p_obs, M2M_ERR_INVALID);
 
 	ack_index[0] = p_obs->ack_type;
-	mcpy(&ack_index[1], &p_obs->index, 2);
+	mcpy( (u8*)&ack_index[1], (u8*)&p_obs->index, 2);
 	
 	
 	return _proto_m2m_request_send(p_args, COAP_OPT_OBSERVER_RQ, 3, ack_index, p_args->payloadlen, p_args->p_payload);
@@ -309,7 +311,7 @@ static int observer_ack(M2M_proto_ack_T *p_ack,int flags){
 
 	_RETURN_EQUAL_0(p_obs, M2M_ERR_INVALID);
 	ack_index[0] = p_obs->ack_type;
-	mcpy(&ack_index[1], &p_obs->index, 2);
+	mcpy(&ack_index[1], (u8*)&p_obs->index, 2);
 
     return _proto_m2m_ack_send(p_ack,COAP_OPT_OBSERVER_ACK, 3, ack_index,p_ack->payload.len,p_ack->payload.p_data);
 }
@@ -544,7 +546,7 @@ static M2M_Return_T _proto_m2m_cmd_parse(coap_pdu_t *p_pdu_recv,M2M_proto_dec_re
 			  _RETURN_EQUAL_0(p_obs, M2M_ERR_NULL);
 		  	  mcpy(extra, p_opt, 3);
 			  p_obs->ack_type = extra[0];
-			  mcpy(&p_obs->index,  &extra[1], 2);
+			  mcpy((u8*)&p_obs->index,  &extra[1], 2);
 			  p_dec->p_extra = p_obs;
 
 		  }
@@ -559,7 +561,7 @@ static M2M_Return_T _proto_m2m_cmd_parse(coap_pdu_t *p_pdu_recv,M2M_proto_dec_re
 			  _RETURN_EQUAL_0(p_obs, M2M_ERR_NULL);
 			  mcpy(extra, p_opt, 3);
 			  p_obs->ack_type = extra[0];
-			  mcpy(&p_obs->index,  &extra[1], 2);
+			  mcpy((u8*)&p_obs->index,  (u8*)&extra[1], 2);
 			  p_dec->p_extra = p_obs;
 
 		  }
@@ -617,7 +619,7 @@ static int pkt_decode( M2M_dec_args_T *p_a,int flags){
         
         // 一致才解码
         m2m_debug_level(M2M_LOG_DEBUG,"receive encrypted package");
-        ret_dec = data_dec( p_r->p_payload,p_d, payload_enc_len, p_dec->p_enc->keylen,p_dec->p_enc->p_enckey);
+        ret_dec = data_dec( (const char*)p_r->p_payload,(char*)p_d, payload_enc_len, p_dec->p_enc->keylen,p_dec->p_enc->p_enckey);
         if( ret_dec <= 0 ){
             m2m_debug_level(M2M_LOG_WARN,"Package decode failure !!");
             MFREE(p_d);
@@ -808,5 +810,5 @@ M2M_Return_T m2m_protocol_init(M2M_Protocol_T *p_proto){
 **  2.
 ***********/
 M2M_Return_T m2m_protocol_deInit(M2M_Protocol_T *p_proto){
-
+    return 0;
 }

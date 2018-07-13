@@ -78,7 +78,7 @@ int main(int argc, char **argv){
     // get remote id 
     STR_2_INT_ARRAY( r_id.id, argv[4], strlen(argv[4]));
     // get remote host 
-    p_remote_host = argv[5];
+    p_remote_host = (u8*)argv[5];
     // get local port 
     r_port = atoi(argv[6]);
     // get local secret key
@@ -95,24 +95,24 @@ int main(int argc, char **argv){
         // get server id;
         STR_2_INT_ARRAY( h_id.id, argv[9], strlen(argv[9]));
         // get server host
-        p_server_host = argv[10];
+        p_server_host = (u8*)argv[10];
         // get server port 
         s_port = atoi(argv[11]);
     }
 
     // printf all config 
     m2m_printf("local port = %d\n", l_port);
-    m2m_bytes_dump("local id: ", l_id.id, sizeof(M2M_id_T));
-    m2m_bytes_dump("local secret key : ", l_key, l_keylen);
+    m2m_bytes_dump((u8*)"local id: ", l_id.id, sizeof(M2M_id_T));
+    m2m_bytes_dump((u8*)"local secret key : ", l_key, l_keylen);
     
-    m2m_bytes_dump("remote id: ", r_id.id, sizeof(M2M_id_T));
-    m2m_printf("remote host %s port %d\n", p_remote_host, r_port);
+    m2m_bytes_dump((u8*)"remote id: ", r_id.id, sizeof(M2M_id_T));
+    m2m_printf((u8*)"remote host %s port %d\n", p_remote_host, r_port);
     m2m_bytes_dump("remote secret key : ", r_key, r_keylen);
-    m2m_printf("send data %s to remote \n", p_send_data);
+    m2m_printf((u8*)"send data %s to remote \n", p_send_data);
 
     if(argc >= 11){
         m2m_printf("server port = %d\n", s_port);
-        m2m_bytes_dump("server id: ", &h_id, sizeof(M2M_id_T));
+        m2m_bytes_dump((u8*)"server id: ", &h_id, sizeof(M2M_id_T));
         m2m_printf("server host %s port %d\n", p_server_host, s_port);
     }
     

@@ -432,13 +432,13 @@ M2M_Return_T m2m_session_observer_stop(M2M_T *p_m2m, void *p_obserindex){
 	
 	mmemset((u8*)&arg,0,sizeof(Net_Args_T));
 	arg.p_net = (Net_T*)p_m2m->net;
-	arg.p_s = (Net_T*)p_m2m->session;
+	arg.p_s = (Session_T*)p_m2m->session;
 	arg.p_extra = (void*)p_obserindex;
 
     m2m_log_debug("session (%p) stoping observer [%p].", (void*)p_m2m->session, p_obserindex);
 
 	if(!p_obserindex){
-		m2m_log_warn("Can't find observer index to stop !!",p_obserindex);
+		m2m_log_warn("Can't find observer index %p to stop !!",p_obserindex);
 		return M2M_ERR_INVALID;
 	}
 	if(arg.p_net->ioctl_session)
@@ -459,7 +459,7 @@ M2M_Return_T m2m_session_notify_push(M2M_T *p_m2m, void *p_obserindex,int len,u8
     Net_Args_T arg;
 
 	if(!p_obserindex){
-		m2m_log_warn("Can't find observer index to stop !!",p_obserindex);
+		m2m_log_warn("Can't find observer index %p to stop !!",p_obserindex);
 		return M2M_ERR_INVALID;
 	}
 	

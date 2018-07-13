@@ -185,7 +185,7 @@ int main(void){
     
     m2m_int(NULL);
     net =  m2m_net_creat(&local_id,  TST_MSES_LOCAL_PORT_START, strlen(TST_MSES_LOCAL_KEY), TST_MSES_LOCAL_KEY, \
-                         &h_id,TST_MSES_SERVER_HOST, TST_MSES_SERVERT_PORT,NULL, NULL);
+                         &h_id,(u8*)TST_MSES_SERVER_HOST, TST_MSES_SERVERT_PORT,NULL, NULL);
     while(1){
         // send reqeust .
         for(i=0; i<TST_MSES_MAX_NET;i++ )
@@ -209,7 +209,7 @@ void test_mses_onlineCheck_callback(int code,M2M_packet_T **pp_ack_pkt, M2M_pack
             M2M_Address_T *p_ip =  (M2M_Address_T*) p_recv_pkt->p_data;
             m2m_log("device was online and the ip is  %u.%u.%u.%u port: %d", p_ip->ip[0], p_ip->ip[1],p_ip->ip[2],p_ip->ip[3], p_ip->port);
         }
-        m2m_bytes_dump("recv dump : ",p_recv_pkt->p_data, p_recv_pkt->len);
+        m2m_bytes_dump((u8*)"recv dump : ",p_recv_pkt->p_data, p_recv_pkt->len);
     }
     if( p_arg ){
         TST_Mses_item_T *p_ml = (TST_Mses_item_T*)p_arg;
@@ -225,7 +225,7 @@ void test_mses_callback(int code,M2M_packet_T **pp_ack_pkt, M2M_packet_T *p_recv
     m2m_log_debug(">>>>>>> net callback:: receive code = %d\n", code);
     if( p_recv_pkt && p_recv_pkt->len > 0 && p_recv_pkt->p_data){
         m2m_log("receive data : %s\n",p_recv_pkt->p_data);
-        m2m_bytes_dump("recv dump : ",p_recv_pkt->p_data, p_recv_pkt->len);
+        m2m_bytes_dump((u8*)"recv dump : ",p_recv_pkt->p_data, p_recv_pkt->len);
     }
 	
     if(  p_arg && code > 0 ){

@@ -41,7 +41,7 @@
 #define M_MIN(a,b)		((a>b)?b:a)
 #define M_MAX(a,b)		( (a>b)?a:b)
 
-#define A_BIGER(a,b,large)            ((a>b) ? (1):( (DIFF_(a,b) > large)?1:0 ))
+#define A_BIGER(a,b,large)            ((a>b) ? (TRUE):( (DIFF_(a,b) > large)?TRUE:FALSE ))
 #define A_BIGER_U32(a,b)    A_BIGER(a,b,0x7fffffff)
 #define A_BIGER_U16(a,b)    A_BIGER(a,b,0x7fff)
 #define A_BIGER_U8(a,b)    A_BIGER(a,b,0x7f)

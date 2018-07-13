@@ -73,9 +73,9 @@ int main(int argc, char **argv){
         sport = atoi(argv[6]);
     }
 
-    m2m_bytes_dump("\n\tdevice id: ", d_id.id, sizeof(M2M_id_T));
+    m2m_bytes_dump((u8*)"\n\tdevice id: ", d_id.id, sizeof(M2M_id_T));
     m2m_printf("\tdevice listing port %d.\n",dport);
-    m2m_bytes_dump("\tdevice secret key: ",p_key,16);
+    m2m_bytes_dump((u8*)"\tdevice secret key: ",p_key,16);
 
     if(argc >=6){
         m2m_bytes_dump("\tdevice id: ",s_id.id, sizeof(M2M_id_T));
@@ -128,7 +128,7 @@ void dev_callback(int code,M2M_packet_T **pp_ack_data,M2M_packet_T *p_recv_data,
         default:
             if( p_recv_data && p_recv_data->len > 0 && p_recv_data->p_data){
                 m2m_log("receive data : %s\n",p_recv_data->p_data);
-                m2m_bytes_dump("recv dump : ",p_recv_data->p_data, p_recv_data->len);
+                m2m_bytes_dump((u8*)"recv dump : ",p_recv_data->p_data, p_recv_data->len);
                  if(p_arg ) {
                         *((int*) p_arg) = *((int*) p_arg) - 1;
                     }

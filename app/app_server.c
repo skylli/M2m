@@ -60,9 +60,9 @@ M2M_id_T *p_sid;
     mcpy( (u8*)p_key, (u8*)argv[3], keylen);
 
     
-    m2m_bytes_dump("\n\tserver id: ", s_id.id, sizeof(M2M_id_T));
+    m2m_bytes_dump((u8*)"\n\tserver id: ", s_id.id, sizeof(M2M_id_T));
     m2m_printf("\tserver listing port %d.\n",sport);
-    m2m_bytes_dump("\tserver secret key: ",p_key,16);
+    m2m_bytes_dump((u8*)"\tserver secret key: ",p_key,16);
     m2m_printf("\t\n");
     
     m2m_int(&sconf);

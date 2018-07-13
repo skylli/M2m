@@ -23,7 +23,7 @@
 
 #define TST_DEVOBS_NOTIFY_PUS1	("abcd123")
 
-//#define USE_KEYBOARD_INPUT	
+#define USE_KEYBOARD_INPUT	
 #define NOTIFY_INTERVAL_TM 	(70000)
 /*************************************************************/
 typedef struct DEV_OBS_T
@@ -53,14 +53,14 @@ void main(void){
 	char arr_input[512];
     device_id.id[ID_LEN -1] = TST_DEVOBS_LOCAL_ID; // 
     mmemset((u8*)&h_id, 0, sizeof(M2M_T));
-	mmemset(&obs, 0, sizeof(Dev_obs_T));
+	mmemset((u8*)&obs, 0, sizeof(Dev_obs_T));
 	
     conf.def_enc_type = M2M_ENC_TYPE_AES128;
     conf.max_router_tm = 10*60*1000;
     conf.do_relay = 0;
     ret = m2m_int(&conf);
 
-    m2m.net = m2m_net_creat( &device_id, TST_DEVOBS_LOCAL_PORT, strlen(TST_DEVOBS_LOCAL_KEY),TST_DEVOBS_LOCAL_KEY,\
+    m2m.net = m2m_net_creat( &device_id, TST_DEVOBS_LOCAL_PORT, strlen(TST_DEVOBS_LOCAL_KEY),(u8*)TST_DEVOBS_LOCAL_KEY,\
                              &h_id,NULL, NULL,(m2m_func)dev_callback,&obs);
 	
     if( m2m.net == 0 ){
