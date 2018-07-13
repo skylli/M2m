@@ -12,7 +12,7 @@
 #include "../../include/m2m_type.h"
 #include "m2m_log.h"
 
-u8 g_log_level = 0;
+u8 g_log_level = M2M_LOG_WARN;
 
 #ifdef C_HAS_FILE
 

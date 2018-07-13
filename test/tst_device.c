@@ -13,13 +13,13 @@
 
 
 /** 设备端 配置 ***********************************************************/
-#define TST_LOCAL_HOST      DEFAULT_HOST
+#define TST_LOCAL_HOST      TCONF_HOST
 #define TST_DEV_LOCAL_ID    (2)
-#define TST_DEV_LOCAL_PORT  DEFAULT_DEVICE_PORT
-#define TST_DEV_LOCAL_KEY   DEFAULT_DEVICE_KEY
+#define TST_DEV_LOCAL_PORT  TCONF_DEVICE_PORT
+#define TST_DEV_LOCAL_KEY   TCONF_DEVICE_KEY
 
-#define TST_DEV_SERVER_HOST DEFAULT_HOST
-#define TST_DEV_SERVER_PORT DEFAULT_SERVER_PORT
+#define TST_DEV_SERVER_HOST TCONF_HOST
+#define TST_DEV_SERVER_PORT TCONF_SERVER_PORT
 
 
 /*************************************************************/

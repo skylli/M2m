@@ -10,20 +10,21 @@
 #include "../include/app_implement.h"
 #include "../include/util.h"
 
+#include "tst_config.h"
 
 /** 设备端 配置 ***********************************************************/
-#define TST_CLI_OBS_HOST      DEFAULT_HOST
+#define TST_CLI_OBS_HOST      TCONF_HOST
 #define TST_CLI_OBS_LOCAL_ID    (3)
-#define TST_CLI_OBS_LOCAL_PORT  DEFAULT_APP_PORT
-#define TST_CLI_OBS_LOCAL_KEY   DEFAULT_APP_KEY
+#define TST_CLI_OBS_LOCAL_PORT  TCONF_APP_PORT
+#define TST_CLI_OBS_LOCAL_KEY   TCONF_APP_KEY
 
-#define TST_CLI_OBS_SERVER_HOST DEFAULT_HOST
-#define TST_CLI_OBS_SERVER_PORT DEFAULT_SERVER_PORT
+#define TST_CLI_OBS_SERVER_HOST TCONF_HOST
+#define TST_CLI_OBS_SERVER_PORT TCONF_SERVER_PORT
 
 #define TST_CLI_OBS_REMOTE_ID    (2)
-#define TST_CLI_OBS_REMOTE_HOST     DEFAULT_HOST
-#define TST_CLI_OBS_REMOTE_PORT     DEFAULT_DEVICE_PORT
-#define TST_CLI_OBS_REMOTE_KEY1     DEFAULT_DEVICE_KEY
+#define TST_CLI_OBS_REMOTE_HOST     TCONF_HOST
+#define TST_CLI_OBS_REMOTE_PORT     TCONF_DEVICE_PORT
+#define TST_CLI_OBS_REMOTE_KEY1     TCONF_DEVICE_KEY
 
 #define TST_CLI_OBS_DATA1	("OBSERVER DATA1")
 /*************************************************************/

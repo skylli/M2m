@@ -10,18 +10,21 @@
 #include "../include/app_implement.h"
 #include "../include/util.h"
 
+#include "tst_config.h"
 
 /** 设备端 配置 ***********************************************************/
-#define TST_DEVOBS_LOCAL_HOST      DEFAULT_HOST
+#define TST_DEVOBS_LOCAL_HOST      TCONF_HOST
 #define TST_DEVOBS_LOCAL_ID    (2)
-#define TST_DEVOBS_LOCAL_PORT  DEFAULT_DEVICE_PORT
-#define TST_DEVOBS_LOCAL_KEY   DEFAULT_DEVICE_KEY
+#define TST_DEVOBS_LOCAL_PORT  TCONF_DEVICE_PORT
+#define TST_DEVOBS_LOCAL_KEY   TCONF_DEVICE_KEY
 
-#define TST_DEVOBS_SERVER_HOST DEFAULT_HOST
-#define TST_DEVOBS_SERVER_PORT DEFAULT_SERVER_PORT
+#define TST_DEVOBS_SERVER_HOST TCONF_HOST
+#define TST_DEVOBS_SERVER_PORT TCONF_SERVER_PORT
 
 #define TST_DEVOBS_NOTIFY_PUS1	("abcd123")
 
+#define USE_KEYBOARD_INPUT	
+#define NOTIFY_INTERVAL_TM 	(1000)
 /*************************************************************/
 typedef struct DEV_OBS_T
 {
@@ -47,7 +50,7 @@ void main(void){
     int ret;
 	Dev_obs_T obs;
 	u32 old_tm = 0;
-
+	char arr_input[512];
     device_id.id[ID_LEN -1] = TST_DEVOBS_LOCAL_ID; // 
     mmemset((u8*)&h_id, 0, sizeof(M2M_T));
 	mmemset(&obs, 0, sizeof(Dev_obs_T));
@@ -68,13 +71,24 @@ void main(void){
 	while(1){
 		m2m_trysync( m2m.net );
 #if 1
-		if(obs.p_node && DIFF_(m2m_current_time_get(), old_tm) > 5000 ){
-			old_tm = m2m_current_time_get();
-			m2m_printf(">>>>>>>>>>\t start new notify");
-			m2m_session_notify_push( &m2m, obs.p_node, strlen(TST_DEVOBS_NOTIFY_PUS1),TST_DEVOBS_NOTIFY_PUS1, dev_callback, &obs);
-			obs.notify_push_en =0;
+		if(obs.p_node ){
+#ifdef  USE_KEYBOARD_INPUT
+			mmemset(arr_input, 0, 512);
+			m2m_printf("input notify: ");
+			scanf("%s", arr_input);
+			m2m_printf("\npushing an new notify: %s", arr_input);
+			m2m_session_notify_push( &m2m, obs.p_node, strlen(arr_input),arr_input, dev_callback, &obs);
+			obs.p_node = NULL;
+#else
+			if(DIFF_(old_tm, m2m_current_time_get()) > NOTIFY_INTERVAL_TM){
+				
+				m2m_session_notify_push( &m2m, obs.p_node, strlen(TCONF_NOTIFY_DATA1),TCONF_NOTIFY_DATA1, dev_callback, &obs);
+				old_tm = m2m_current_time_get();
+			}
+#endif
+
 		}
-		if(obs.exit )
+		if( obs.exit )
 			break;
 #endif		
     }
@@ -143,8 +157,13 @@ void dev_callback(int code,M2M_packet_T **pp_ack_data,void *p_r, void *p_arg){
 		case M2M_REQUEST_NOTIFY_ACK:
 			if(!p_arg || !p_r )
 				break;
+
 			p_devobs = (Dev_obs_T*) p_arg;  
+			p_robs = (M2M_obs_payload_T*) p_r;
+			p_devobs->p_node = p_robs->p_obs_node;
 			p_devobs->notify_push_en = 1;
+
+			
 			break;
         default:
             break;

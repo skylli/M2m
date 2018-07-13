@@ -17,17 +17,17 @@
 ** It's an sample to show how to build an client to send data request to server use m2m library.
 ****/
 /***************** 测试配置****************************************************/
-#define TST_LOCAL_PORT      DEFAULT_APP_PORT
-#define TST_LOCAL_KEY       DEFAULT_APP_KEY
+#define TST_LOCAL_PORT      TCONF_APP_PORT
+#define TST_LOCAL_KEY       TCONF_APP_KEY
 
 #define TST_APP_LOCAL_ID    (1)
 #define TST_REMOTE_ID       (2)
 
-#define TST_SERVER_HOST     DEFAULT_HOST
-#define TST_SERVERT_PORT    DEFAULT_DEVICE_PORT
-#define TST_REMOTE_HOST     DEFAULT_HOST
-#define TST_REMOTE_PORT     DEFAULT_DEVICE_PORT
-#define TST_SECRET_KEY1     DEFAULT_DEVICE_KEY
+#define TST_SERVER_HOST     TCONF_HOST
+#define TST_SERVERT_PORT    TCONF_SERVER_PORT
+#define TST_REMOTE_HOST     TCONF_HOST
+#define TST_REMOTE_PORT     TCONF_DEVICE_PORT
+#define TST_SECRET_KEY1     TCONF_DEVICE_KEY
 #define TST_SECRET_KEY2     "00abcdefghijklnm11"
 #define TST_DATA_STR  "sending test data."
 
@@ -39,7 +39,7 @@ M2M_id_T local_id,remote_id;
 extern u8 g_log_level;
 enum{
     TST_NET_CREAT =0,
-    TST_ONLINE_CHECK,
+    TST_ONLINE_CHECK_,
 
 #ifdef CONF_BROADCAST_ENABLE
     TST_BORADCAST,
@@ -104,7 +104,7 @@ int main(){
 
 	mmemset((u8*)&hid, 0, sizeof(M2M_T) );
     /**1. 建立 network ********/
-    m2m.net = m2m_net_creat( &local_id, TST_LOCAL_PORT, strlen(TST_LOCAL_KEY), TST_LOCAL_KEY, &remote_id, NULL, NULL, (m2m_func)test_callback,NULL);
+    m2m.net = m2m_net_creat( &local_id, TST_LOCAL_PORT, strlen(TST_LOCAL_KEY), TST_LOCAL_KEY, NULL, TST_SERVER_HOST, TST_SERVERT_PORT, (m2m_func)test_callback,NULL);
     if( !m2m.net){
         m2m_log_error(" creat net failt !! \n");
         goto func_tst_end;
@@ -112,20 +112,20 @@ int main(){
     tst_ret[TST_NET_CREAT] = 1;
 	
     /*2  在线设备查询 ***/
-    #if 0
-    m2m_dev_online_check( m2m.net, TST_SERVER_HOST, TST_SERVERT_PORT, &local_id, (m2m_func)test_onlineCheck_callback,&tst_ret[TST_ONLINE_CHECK]);
-    WAIT_UNTIL(tst_ret[TST_ONLINE_CHECK],1, m2m.net);
-    #endif
-
+#if 1
+    m2m_dev_online_check( m2m.net, TST_SERVER_HOST, TST_SERVERT_PORT, &local_id, (m2m_func)test_onlineCheck_callback,&tst_ret[TST_ONLINE_CHECK_]);
+    WAIT_UNTIL(tst_ret[TST_ONLINE_CHECK_],1, m2m.net);
+#endif
     /**2 发送广播包**********/
-#if 0	
+#if 1
 //#ifdef CONF_BROADCAST_ENABLE
-    ret = m2m_broadcast_data_start( m2m.net,TST_SERVERT_PORT,strlen(TES_BROADCAST_DATA),TES_BROADCAST_DATA,(m2m_func)test_callback,&tst_ret[TST_BORADCAST]);
+    ret = m2m_broadcast_data_start( m2m.net,TST_REMOTE_PORT,strlen(TES_BROADCAST_DATA),TES_BROADCAST_DATA,(m2m_func)test_callback,&tst_ret[TST_BORADCAST]);
     WAIT_UNTIL(tst_ret[TST_BORADCAST],1, m2m.net);
     
     m2m_log("stop broadcast ...");
     m2m_broadcast_data_stop( m2m.net);
 #endif // CONF_BROADCAST_ENABLE
+
     /**3 创建会话*********/
     m2m.session = m2m_session_creat( m2m.net, &remote_id,TST_REMOTE_HOST, TST_REMOTE_PORT, strlen(TST_SECRET_KEY1),TST_SECRET_KEY1,(m2m_func)test_callback,&tst_ret[TST_SESSION_CREAT]);
     if( !m2m.session ){
@@ -191,7 +191,7 @@ void test_onlineCheck_callback(int code,M2M_packet_T **pp_ack_pkt, M2M_packet_T 
     
     }
     if(  p_arg){
-        *((int*) p_arg) = -1;
+        //*((int*) p_arg) = -1;
         if( code >= M2M_HTTP_OK )
             *((int*) p_arg) = 1;
         }
@@ -211,9 +211,16 @@ void test_callback(int code,M2M_packet_T **pp_ack_pkt, M2M_packet_T *p_recv_pkt,
 					   tst_ret[TST_NOTIFY] = 1;
 				 }
 			break;
+		case M2M_REQUEST_BROADCAST_ACK:
+			if(p_recv_pkt->len == sizeof(M2M_Address_T)){
+	            M2M_Address_T *p_ip =  (M2M_Address_T*) p_recv_pkt->p_data;
+	            m2m_log("device was online and the ip is  %u.%u.%u.%u port: %d", p_ip->ip[0], p_ip->ip[1],p_ip->ip[2],p_ip->ip[3], p_ip->port);
+        	}
+			if(p_arg){
+		            *((int*) p_arg) = 1;
+	        }	
 		default:
 		    if( code > 0 && p_arg){
-		        *((int*) p_arg) = -1;
 		        if( code >= M2M_HTTP_OK )
 		            *((int*) p_arg) = 1;
 	        }	
@@ -239,7 +246,7 @@ int test_result(int *p_ret,u8 **p_name, int items){
         }
     else{
         m2m_printf(">> function test is failt. plasese have a check. \n");
-        return -1;
+        return 1;
         } 
 }
 

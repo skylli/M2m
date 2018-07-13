@@ -8,6 +8,8 @@
 #include "../include/util.h"
 #include "../src/network/m2m/m2m_router.h"
 
+#include "tst_config.h"
+
  /*******************
  ** It's an sample to show how to build an server use m2m library.
  ****/
@@ -64,7 +66,7 @@
      M2M_Return_T ret = m2m_int(&conf);
 
      /** server init. creat an server. ********/
-     m2m.net = m2m_net_creat( &local_id,SERVER_PORT, strlen(DEFAULT_SERVER_KEY),DEFAULT_SERVER_KEY, NULL,NULL, 0, (m2m_func)receivehandle,NULL);
+     m2m.net = m2m_net_creat( &local_id,SERVER_PORT, strlen(TCONF_SERVER_KEY),TCONF_SERVER_KEY, NULL,NULL, 0, (m2m_func)receivehandle,NULL);
      if( !m2m.net){
          m2m_log_error(" creat net failt !! \n");
          return -1;

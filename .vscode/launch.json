@@ -100,10 +100,10 @@
             ]
         },
         {
-            "name": "(gdb) test_cli_obs",
+            "name": "(gdb) tst_logic_client",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/home/derry/github/m2m/bin/tst_cli_obs",
+            "program": "/home/derry/github/m2m/bin/tst_logic_client",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

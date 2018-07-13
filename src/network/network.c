@@ -1767,10 +1767,10 @@ static M2M_Return_T net_trysync( Net_Args_T *p_args,int flags ){
     session_retransmit(p_net);
     // 3.连接维持.
     // todo 
-    // session_keepAlive(p_net);
+     session_keepAlive(p_net);
     // 广播、 onlink check 包发送.
     // 4. session 维护，清理僵尸 session.
-    // net_session_clearn(p_net);
+    net_session_clearn(p_net);
     net_request_retransmit(p_net);
     // 5. session 
     // 5. 定期往 host 发送 ping
@@ -1834,6 +1834,8 @@ static M2M_Return_T net_request_packet_destory(Net_request_node_T **pp_node ){
 	
     Net_request_node_T *p_node = *pp_node;
 	// free 
+	if( !p_node)
+		return M2M_ERR_INVALID;
 	if( p_node->callback_arg.func){
 		p_node->callback_arg.func( (int)M2M_ERR_REQUEST_DESTORY, NULL, NULL, p_node->callback_arg.p_user_arg); 
 	}
@@ -1847,6 +1849,8 @@ static M2M_Return_T net_request_packet_destory(Net_request_node_T **pp_node ){
     
     mfree(p_node);
     *pp_node = NULL;
+	
+	return M2M_ERR_NOERR;
 }
 static Net_request_node_T *net_request_packet_find(Net_request_node_T *p_hd, u32 stoken){
     Net_request_node_T *p_find = NULL, *p_tmp;

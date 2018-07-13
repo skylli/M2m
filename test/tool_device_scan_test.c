@@ -11,21 +11,22 @@
 #include "../include/util.h"
 #include <stdlib.h>
 
+#include "tst_config.h"
 
 /*******************
 ** It's an tool for testing .
 ****/
 /***************** 测试配置****************************************************/
 #define TOOL_LOCAL_PORT      (9510)
-#define TOOL_LOCAL_KEY       DEFAULT_APP_KEY
+#define TOOL_LOCAL_KEY       TCONF_APP_KEY
 
 #define TOOL_APP_LOCAL_ID    (1)
 #define TOOL_REMOTE_ID       (2)
 
 
-#define TOOL_REMOTE_HOST     DEFAULT_HOST
+#define TOOL_REMOTE_HOST     TCONF_HOST
 #define TOOL_REMOTE_PORT     (9529)
-#define TOOL_SECRET_KEY1     DEFAULT_DEVICE_KEY
+#define TOOL_SECRET_KEY1     TCONF_DEVICE_KEY
 #define TOOL_DATA_STR  "sending test data."
 
 #define TOOL_BROADCAST_DATA  "search device"
