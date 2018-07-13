@@ -1,6 +1,8 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
+/**log define ****/
+#define CONF_LOG_TIME		1
 //#define HAS_LINUX_MUTEX	1
 /** net thing **/
 #define PROTO_VERSION_HDR   (1)

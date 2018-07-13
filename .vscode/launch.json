@@ -81,10 +81,10 @@
             ]
         },
         {
-            "name": "(gdb) tst_dev_obs",
+            "name": "(gdb) tst_obs_device",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/home/derry/github/m2m/bin/tst_dev_obs",
+            "program": "/home/derry/github/m2m/bin/tst_obs_device",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -100,10 +100,10 @@
             ]
         },
         {
-            "name": "(gdb) tst_logic_client",
+            "name": "(gdb) tst_obs_client",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/home/derry/github/m2m/bin/tst_logic_client",
+            "program": "/home/derry/github/m2m/bin/tst_obs_client",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

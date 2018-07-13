@@ -12,6 +12,8 @@
  #include <stdio.h>
  #include <string.h>
 #include "../../include/m2m.h"
+#include "../../config/config.h"
+
 
 #ifndef M2M_LOG_H
 #define M2M_LOG_H
@@ -28,14 +30,30 @@ static const char *s_debug[] = {
 
 extern u8 g_log_level;
 
+
 #define __FILENAME__ (strrchr(__FILE__, '/')? strrchr(__FILE__, '/') + 1 : __FILE__) 
 #ifdef LOG_VERBOSE
+
+#ifdef CONF_LOG_TIME 
+void current_time_printf();
+#define m2m_debug_level(level, format,...) do{ if( level >= g_log_level ){ \
+		current_time_printf();\
+        m2m_printf("%s: %s func:%s LINE: %d: " format "\r\n",s_debug[level],__FILENAME__,__func__, __LINE__, ##__VA_ARGS__); \
+        }}while(0)
+#define m2m_debug_level_noend(level, format,...) do{ if( level >= g_log_level ){ \
+				current_time_printf();\
+                m2m_printf("%s: %s func:%s LINE: %d: " format,s_debug[level],__FILENAME__,__func__, __LINE__, ##__VA_ARGS__); \
+                }}while(0)
+
+
+#else //CONF_LOG_TIME
 #define m2m_debug_level(level, format,...) do{ if( level >= g_log_level ){ \
         m2m_printf("%s: %s func:%s LINE: %d: " format "\r\n",s_debug[level],__FILENAME__,__func__, __LINE__, ##__VA_ARGS__); \
         }}while(0)
 #define m2m_debug_level_noend(level, format,...) do{ if( level >= g_log_level ){ \
                 m2m_printf("%s: %s func:%s LINE: %d: " format,s_debug[level],__FILENAME__,__func__, __LINE__, ##__VA_ARGS__); \
                 }}while(0)
+#endif  //CONF_LOG_TIME
 #else
 #define m2m_debug_level(level, format,...) do{ if( level >= g_log_level ){ \
             m2m_printf("%s:" format "\r\n",s_debug[level], ##__VA_ARGS__); \

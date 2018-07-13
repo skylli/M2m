@@ -23,8 +23,8 @@
 
 #define TST_DEVOBS_NOTIFY_PUS1	("abcd123")
 
-#define USE_KEYBOARD_INPUT	
-#define NOTIFY_INTERVAL_TM 	(1000)
+//#define USE_KEYBOARD_INPUT	
+#define NOTIFY_INTERVAL_TM 	(70000)
 /*************************************************************/
 typedef struct DEV_OBS_T
 {
@@ -82,6 +82,7 @@ void main(void){
 #else
 			if(DIFF_(old_tm, m2m_current_time_get()) > NOTIFY_INTERVAL_TM){
 				
+				m2m_printf("\n>>>>>\tpushing an new notify: %s", TCONF_NOTIFY_DATA1);
 				m2m_session_notify_push( &m2m, obs.p_node, strlen(TCONF_NOTIFY_DATA1),TCONF_NOTIFY_DATA1, dev_callback, &obs);
 				old_tm = m2m_current_time_get();
 			}
@@ -113,7 +114,7 @@ void dev_callback(int code,M2M_packet_T **pp_ack_data,void *p_r, void *p_arg){
                  mcpy((u8*)&p_ack->p_data[sizeof(M2M_id_T)], TST_DEVOBS_SERVER_HOST, strlen(TST_DEVOBS_SERVER_HOST));
                  m2m_log_debug("server receive code = %d\n", code);
                  if( p_recv_data && p_recv_data->len > 0 && p_recv_data->p_data){
-                      m2m_log("server receive data : %s\n",p_recv_data->p_data);
+                      m2m_printf("server receive data : %s\n",p_recv_data->p_data);
                 }
                  loop_count++;
                 *pp_ack_data = p_ack;

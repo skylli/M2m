@@ -51,7 +51,7 @@ typedef enum _EXTRA_CMD_T{
                 cmd.p_enc = &p_s->enc;                                                   \
                 cmd.stoken = p_s->stoken;                                                \
                 cmd.ctoken = p_s->ctoken;                                                \
-                cmd.messageid  = _net_messageid_increase(p_s);                           \
+                cmd.messageid  = _session_messageid_increase(p_s);                           \
                 cmd.payloadlen = p_args->len;                                            \
                 cmd.p_payload  = p_args->p_data;                                         \
                 mcpy( (u8*)&cmd.src_id, (u8*)&p_args->p_net->my,ID_LEN);          \
@@ -148,7 +148,7 @@ static INLINE M2M_Return_T _m2m_net_trylock(Net_T *p_net){
 
 static INLINE int _m2m_net_lock(Net_T *p_net){}
 static void _m2m_net_unlock(Net_T *p_net){}
-static INLINE M2M_Return_T _m2m_net_trylock(Net_T *p_net){}
+static INLINE M2M_Return_T _m2m_net_trylock(Net_T *p_net){ return 0;}
 
 #endif
 
@@ -170,11 +170,28 @@ static INLINE void _ne_sendingId_init(Session_T *p_s){
     p_s->sending_id = p_s->messageid;
 }
 static INLINE u8 _ne_sendingId_increase(Session_T *p_s){
-    p_s->sending_id++;
-    return p_s->sending_id;
+	p_s->sending_id++;
+    return p_s->sending_id ;
 }
-static INLINE u8 _net_messageid_increase(Session_T *p_s){
-    p_s->messageid++;
+static INLINE BOOL _session_msgid_aliave(Session_T *p_s, u8 msgid){
+	M2M_request_pkt_T *p_el = NULL, *p_tmp = NULL;
+
+	LL_FOREACH_SAFE(p_s->p_request_head, p_el, p_tmp){
+		if( p_el->messageid == msgid){
+			return TRUE;
+		}		
+	}
+	
+	return FALSE;	
+}
+
+static INLINE u8 _session_messageid_increase(Session_T *p_s){
+	u8 tmp = p_s->messageid++;
+	int i = 0;
+	for(i=0;i<255 && _session_msgid_aliave(p_s, tmp); i++){
+		tmp++;
+	}		
+    p_s->messageid = tmp;
     return p_s->messageid;
 }
 static INLINE u32 _net_token_creat(){
@@ -183,6 +200,7 @@ static INLINE u32 _net_token_creat(){
 static INLINE u32 _net_getNextSendTime(int count){
     return ( m2m_current_time_get() +  ((_RETRANSMIT_DEFAULT_INTERVAL << count) * 1000 ));
 }
+
 static INLINE int _session_pkt_retransmit_increase( M2M_request_pkt_T *p_req ){
     p_req->transmit_count++;
     p_req->next_send_time = _net_getNextSendTime( p_req->transmit_count );
@@ -769,6 +787,8 @@ static M2M_Return_T obs_notify_rq_handle(Session_T *p_s, M2M_request_pkt_T *p_no
 	// ack notify.
 	#if 1
 		if(p_nobs->ack_type == TYPE_ACK_MUST){
+				
+				m2m_log(">>> sending M2M_PROTO_CMD_SESSION_OBSERVER_ACK");
 			   ret = net_ack( (u16)M2M_HTTP_OK, M2M_PROTO_CMD_SESSION_OBSERVER_ACK, \
 							p_s->protocol.func_proto_ioctl, &p_s->enc, p_raw,(M2M_packet_T*)p_ack_payload,(void*)p_nobs);	
 		}
@@ -1354,8 +1374,9 @@ static M2M_Return_T _net_recv_slave_hanle(Session_T *p_s,M2M_proto_recv_rawpkt_T
     pkt_dec.p_enc = &p_s->enc;
     
 #if 1
-    // 过滤
-    if( A_BIGER_U8( p_s->messageid, p_raw->msgid) )
+    // list 内存在该节点则 接受。
+    // list 内不存在，且接受的 pkt msgid 大于 session 当前的 msgid 则为新的请求包。
+    if( !_session_msgid_aliave(p_s, p_raw->msgid) && A_BIGER_U8( p_s->messageid, p_raw->msgid) )
            return net_ack( (u16)M2M_HTTP_MSGID_NOMATCH, M2M_PROTO_IOC_CMD_ERR_PKT_ACK, \
            					p_s->protocol.func_proto_ioctl,&p_s->enc, p_raw,NULL, NULL);
 #endif
@@ -1430,6 +1451,7 @@ static M2M_Return_T _net_recv_slave_hanle(Session_T *p_s,M2M_proto_recv_rawpkt_T
 			break;
 	
 		case M2M_PROTO_CMD_SESSION_OBSERVER_ACK:
+			m2m_log(">>> receive M2M_PROTO_CMD_SESSION_OBSERVER_ACK");
 			p_node = _net_session_node_find(p_s,p_raw->msgid);
 			ret = obs_notify_ack_handle(p_s, p_node, p_raw, p_dec);
 			break;
