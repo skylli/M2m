@@ -13,15 +13,15 @@
 #include "tst_config.h"
 
 /** 设备端 配置 ***********************************************************/
-#define TST_DEVOBS_LOCAL_HOST      TCONF_HOST
+#define TST_DEVOBS_LOCAL_HOST  TCONF_HOST
 #define TST_DEVOBS_LOCAL_ID    (2)
 #define TST_DEVOBS_LOCAL_PORT  TCONF_DEVICE_PORT
 #define TST_DEVOBS_LOCAL_KEY   TCONF_DEVICE_KEY
 
-#define TST_DEVOBS_SERVER_HOST TCONF_HOST
-#define TST_DEVOBS_SERVER_PORT TCONF_SERVER_PORT
+#define TST_DEVOBS_SERVER_HOST	TCONF_HOST
+#define TST_DEVOBS_SERVER_PORT  TCONF_SERVER_PORT
 
-#define TST_DEVOBS_NOTIFY_PUS1	("abcd123")
+#define TST_DEVOBS_NOTIFY_PUS1  ("abcd123")
 
 // 开启了 键盘输入之后就不可以定时推送
 #define USE_KEYBOARD_INPUT	        // 开启键盘可输入 string 并推送
