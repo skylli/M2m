@@ -64,7 +64,7 @@ void current_time_printf();
 #endif
 
 
-#define m2m_byte_print(p,n) for(int i=0; p && i<n;i++){ m2m_printf("[%x]",p[i]);}
+#define m2m_byte_print(p,n) do{int i=0;for( i=0; p && i<n;i++){ m2m_printf("[%x]",p[i]);}}while(0)
 #ifdef C_HAS_FILE
 #define m2m_log_init(l)     do{ m2m_record_level_set(l); m2m_record_init(l); }while(0)
 #define m2m_log_uninit()    do{ m2m_record_uninit(); }while(0)

@@ -961,6 +961,11 @@ static M2M_Return_T session_obs_stop(Net_Args_T *p_args,int flags){
 	 p_s = _session_node_belong_find(p_args->p_net, p_node);
 	 
 	 _RETURN_EQUAL_0(p_s, M2M_ERR_OBSERVER_DISCARD);
+	// in salve session we just want free that node .
+	if(p_s->type == SESSION_TYPE_SLAVE){
+		session_node_destory(&p_s->p_request_head, &p_node);
+		return M2M_ERR_NOERR;
+	}
 
 	p_obs = _obs_alloc(TYPE_ACK_NONE, OBS_TYPE_OFF);
 	_RETURN_EQUAL_0(p_obs, M2M_ERR_NULL);
