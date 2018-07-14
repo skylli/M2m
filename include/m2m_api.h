@@ -23,12 +23,12 @@ typedef struct {
     size_t session;
 }M2M_T;
 typedef struct M2M_CONF_T{
-    u8 def_enc_type;
-    u8 do_relay;
-    Func_arg cb;
+    u8 def_enc_type;  // 秘钥的类型，默认使用 M2M_ENC_TYPE_AES128
+    u8 do_relay;	 // 是否支持中转，若开启该功能则需要实现中转函数，只有服务的需要打开该功能。	
+    Func_arg cb;	//  仅仅在 python 用于释放资源。
     u32 max_router_tm;
 }M2M_conf_T;
-
+// 获取该库的版本号
 void m2m_version(void);
 // 初始化 m2m
 M2M_Return_T m2m_int(M2M_conf_T *p_conf);

@@ -23,8 +23,9 @@
 
 #define TST_DEVOBS_NOTIFY_PUS1	("abcd123")
 
-#define USE_KEYBOARD_INPUT	
-#define NOTIFY_INTERVAL_TM 	(70000)
+// 开启了 键盘输入之后就不可以定时推送
+#define USE_KEYBOARD_INPUT	        // 开启键盘可输入 string 并推送
+#define NOTIFY_INTERVAL_TM 	(1000)  // 定时发送 notify 的时间间隔
 /*************************************************************/
 typedef struct DEV_OBS_T
 {
@@ -53,14 +54,14 @@ void main(void){
 	char arr_input[512];
     device_id.id[ID_LEN -1] = TST_DEVOBS_LOCAL_ID; // 
     mmemset((u8*)&h_id, 0, sizeof(M2M_T));
-	mmemset((u8*)&obs, 0, sizeof(Dev_obs_T));
+	mmemset(&obs, 0, sizeof(Dev_obs_T));
 	
     conf.def_enc_type = M2M_ENC_TYPE_AES128;
     conf.max_router_tm = 10*60*1000;
     conf.do_relay = 0;
     ret = m2m_int(&conf);
 
-    m2m.net = m2m_net_creat( &device_id, TST_DEVOBS_LOCAL_PORT, strlen(TST_DEVOBS_LOCAL_KEY),(u8*)TST_DEVOBS_LOCAL_KEY,\
+    m2m.net = m2m_net_creat( &device_id, TST_DEVOBS_LOCAL_PORT, strlen(TST_DEVOBS_LOCAL_KEY),TST_DEVOBS_LOCAL_KEY,\
                              &h_id,NULL, NULL,(m2m_func)dev_callback,&obs);
 	
     if( m2m.net == 0 ){
@@ -82,12 +83,10 @@ void main(void){
 #else
 			if(DIFF_(old_tm, m2m_current_time_get()) > NOTIFY_INTERVAL_TM){
 				
-				m2m_printf("\n>>>>>\tpushing an new notify: %s", TCONF_NOTIFY_DATA1);
 				m2m_session_notify_push( &m2m, obs.p_node, strlen(TCONF_NOTIFY_DATA1),TCONF_NOTIFY_DATA1, dev_callback, &obs);
 				old_tm = m2m_current_time_get();
 			}
 #endif
-
 		}
 		if( obs.exit )
 			break;
@@ -114,7 +113,7 @@ void dev_callback(int code,M2M_packet_T **pp_ack_data,void *p_r, void *p_arg){
                  mcpy((u8*)&p_ack->p_data[sizeof(M2M_id_T)], TST_DEVOBS_SERVER_HOST, strlen(TST_DEVOBS_SERVER_HOST));
                  m2m_log_debug("server receive code = %d\n", code);
                  if( p_recv_data && p_recv_data->len > 0 && p_recv_data->p_data){
-                      m2m_printf("server receive data : %s\n",p_recv_data->p_data);
+                      m2m_log("server receive data : %s\n",p_recv_data->p_data);
                 }
                  loop_count++;
                 *pp_ack_data = p_ack;

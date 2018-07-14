@@ -15,14 +15,14 @@
 /** 设备端 配置 ***********************************************************/
 #define TST_CLI_OBS_HOST      TCONF_HOST
 #define TST_CLI_OBS_LOCAL_ID    (3)
-#define TST_CLI_OBS_LOCAL_PORT  TCONF_APP_PORT
+#define TST_CLI_OBS_LOCAL_PORT  "9595"//TCONF_APP_PORT
 #define TST_CLI_OBS_LOCAL_KEY   TCONF_APP_KEY
 
 #define TST_CLI_OBS_SERVER_HOST TCONF_HOST
 #define TST_CLI_OBS_SERVER_PORT TCONF_SERVER_PORT
 
 #define TST_CLI_OBS_REMOTE_ID    (2)
-#define TST_CLI_OBS_REMOTE_HOST     ("ec2-54-153-105-41.us-west-1.compute.amazonaws.com")
+#define TST_CLI_OBS_REMOTE_HOST   "192.168.0.56"  //("ec2-54-153-105-41.us-west-1.compute.amazonaws.com")
 #define TST_CLI_OBS_REMOTE_PORT     TCONF_DEVICE_PORT
 #define TST_CLI_OBS_REMOTE_KEY1     TCONF_DEVICE_KEY
 

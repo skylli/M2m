@@ -42,4 +42,4 @@ test 文件涵盖了 libm2m 库的所有测试，必须所有测试均通过才�
 #define USE_KEYBOARD_INPUT	        // 开启键盘可输入 string 并推送
 #define NOTIFY_INTERVAL_TM 	(1000)  // 定时发送 notify 的时间间隔
 ```
-
+## 
