@@ -42,7 +42,7 @@ typedef struct M2M_REQUEST_PKT_T{
     u8 messageid;
     u8 transmit_count;
 	u8 extra_cmd;      // use with p_extra;
-    M2M_Proto_Cmd_T cmd;
+	M2M_Proto_Cmd_T cmd;
     u32 next_send_time;
     u32 register_time;
     
@@ -93,6 +93,7 @@ typedef struct SESSION_T{
 
     u32 stoken;
     u32 ctoken;
+	u8 node_cnt;
     u8 messageid;
     u8 sending_id;
     u8 keep_ping_en;

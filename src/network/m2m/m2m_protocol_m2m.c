@@ -493,9 +493,9 @@ static M2M_Return_T _proto_m2m_cmd_parse(coap_pdu_t *p_pdu_recv,M2M_proto_dec_re
 		    p_dec->cmd = M2M_PROTO_CMD_PING_RQ;
 		    break;
 		case COAP_OPT_PING_ACK:
-		    
 		    m2m_debug_level(M2M_LOG_DEBUG, "receive cmd = ping ack");
-		    p_dec->cmd = M2M_PROTO_CMD_PING_ACK;
+			opt_get = 1;
+			p_dec->cmd = M2M_PROTO_CMD_PING_ACK;
 		    break;
 		case COAP_OPT_ERROR_ACK:
 		    m2m_debug_level(M2M_LOG_DEBUG, "receive cmd = error ack");

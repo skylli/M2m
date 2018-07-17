@@ -104,7 +104,6 @@ typedef struct M2M_OBSERVER_T{
 	u8 ack_type;
 	u8 lost_index;	
 	u8 retransmit_cnt;
-
 	u16 index;	
 	u32 next_send_tm;	
 

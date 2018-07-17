@@ -24,8 +24,8 @@
 #define TST_DEVOBS_NOTIFY_PUS1  ("abcd123")
 
 // 开启了 键盘输入之后就不可以定时推送
-#define USE_KEYBOARD_INPUT	        // 开启键盘可输入 string 并推送
-#define NOTIFY_INTERVAL_TM 	(1000)  // 定时发送 notify 的时间间隔
+//#define USE_KEYBOARD_INPUT	        // 开启键盘可输入 string 并推送
+#define NOTIFY_INTERVAL_TM 	(15000)  // 定时发送 notify 的时间间隔
 /*************************************************************/
 typedef struct DEV_OBS_T
 {
@@ -88,8 +88,8 @@ void main(void){
 			}
 #endif
 		}
-		if( obs.exit )
-			break;
+//		if( obs.exit )
+//			break;
 #endif		
     }
     

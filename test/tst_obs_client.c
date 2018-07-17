@@ -22,7 +22,7 @@
 #define TST_CLI_OBS_SERVER_PORT TCONF_SERVER_PORT
 
 #define TST_CLI_OBS_REMOTE_ID    (2)
-#define TST_CLI_OBS_REMOTE_HOST  ("ec2-54-153-105-41.us-west-1.compute.amazonaws.com")
+#define TST_CLI_OBS_REMOTE_HOST  TCONF_HOST//("ec2-54-153-105-41.us-west-1.compute.amazonaws.com")
 #define TST_CLI_OBS_REMOTE_PORT     TCONF_DEVICE_PORT
 #define TST_CLI_OBS_REMOTE_KEY1     TCONF_DEVICE_KEY
 
@@ -30,6 +30,7 @@
 /*************************************************************/
 
 // todo
+int notify_destory = 0;
 int loop_count = 0;
 M2M_id_T device_id,server_id;
 void obs_cli_callback(int code,M2M_packet_T **pp_ack_pkt, M2M_packet_T *p_recv_pkt,void *p_arg);
@@ -75,6 +76,11 @@ int main(void){
 		m2m_trysync( m2m.net );
 		//if(notify_break > 30)
 		//	break;
+		if(notify_destory){
+			m2m_printf("re observer new ............");
+			p_node = m2m_session_observer_start(&m2m, TYPE_ACK_MUST, strlen(TST_CLI_OBS_DATA1), TST_CLI_OBS_DATA1, obs_cli_notify_callback, &notify_break);
+			notify_destory = 0;
+		}
     }
 #endif
 	if(p_node)
@@ -135,6 +141,13 @@ void obs_cli_notify_callback(int code,M2M_packet_T **pp_ack_data, M2M_packet_T *
 				 		*pp_ack_data = p_ack;
 				  (*((int*)p_arg))++;
 			 }
+			break;
+		case M2M_ERR_OBSERVER_DISCARD:
+			m2m_log(">>>>>>>>>>>>>>>>>>>> observer have been destory.");
+			if(!p_arg  )
+				break;
+			notify_destory = 1;
+
 			break;
 
 		default:
