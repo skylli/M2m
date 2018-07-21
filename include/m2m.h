@@ -23,8 +23,8 @@ extern "C"
 #define M2M_LOG_WARN   (3)
 #define M2M_LOG_ERROR  (4)
 
-#ifdef M2M_VERSION_MAJOR
-#include "BuildValue.h "
+#ifndef M2M_VERSION_MAJOR
+#include "BuildValue.h"
 #endif
 
 #define m2m_printf  printf

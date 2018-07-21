@@ -17,6 +17,10 @@ SET( PY_PATHC ${PROJECT_SOURCE_DIR}/pym2m)
 # 设置库文件名
 set( pym2m "m2m_lib.${M2M_VERSION_MAJOR}.${M2M_VERSION_MINOR}.${M2M_VERSION_PATCH}")
 
+configure_file(
+    "${PROJECT_SOURCE_DIR}/../../config/cmakeValue.h.in"
+    "${PROJECT_SOURCE_DIR}/../../include/BuildValue.h"
+)
 
 # 搜索当前目录下所有的头文件
 # file(GLOB_RECURSE Foo_HEADERS "*.h")

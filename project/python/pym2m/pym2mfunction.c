@@ -271,6 +271,14 @@ static PyObject *m2mInit(PyObject *self, PyObject *args)
 	PySys_WriteStdout("m2m init successfully\n");
 	Py_RETURN_NONE;
 }
+static PyObject *m2mVersion(){
+
+	u8 *p = m2m_version();
+	if(p)
+		return Py_BuildValue("s", p);
+	else 
+		return Py_BuildValue("i", -1);
+}
 static PyObject *m2mDeinit(PyObject *self, PyObject *args){
 
 	pycallback_destory( (Py_callback_T*)py_m2mconf.cb.p_user_arg);
@@ -743,6 +751,13 @@ static PyObject *netOnlineCheck(PyObject *self, PyObject *args){
 }
 /* regist api */
 PyMethodDef pym2m_methods[] = {
+	{
+	  "m2mVersion",
+	  m2mVersion,
+	  METH_VARARGS,
+	  "config m2mVersionmodle \t usage: .m2mVersion()\n "
+	  "\t\t option: \t get m2m lib version, notice it must be after the  m2mInit, since m2mInit will creat version no"
+	},	
   {
     "m2mInit",
     m2mInit,

@@ -33,8 +33,8 @@ M2M_conf_T m2m_conf;
                                 arg.callback.p_user_arg = p_args;  }while(0)
 
 
-void m2m_version(void){
-    m2m_printf(" m2m version ... \n");
+u8 *m2m_version(void){
+    return m2m_conf.p_version;
 }
 
 // 创建一个 net
@@ -542,6 +542,7 @@ BOOL m2m_net_connted(size_t p){
     if(arg.p_net->ioctl_session)
         return ( arg.p_net->ioctl_session( M2M_NET_CMD_CONNT_CHECK,&arg,0) );
     else 
+
         return 0;
 
 }
@@ -583,6 +584,13 @@ M2M_Return_T m2m_int(M2M_conf_T *p_conf){
         m2m_conf.max_router_tm = 10*60*1000;
         m2m_conf.do_relay = 1;
     }
+	m2m_conf.p_version = NULL;
+#ifdef M2M_VERSION_MAJOR
+	m2m_conf.p_version = mmalloc(10);
+	_RETURN_EQUAL(m2m_conf.p_version, NULL, M2M_ERR_NULL);
+	sprintf(m2m_conf.p_version, "%d.%d.%d", M2M_VERSION_MAJOR, M2M_VERSION_MINOR, M2M_VERSION_PATCH);
+#endif // 
+
     return M2M_ERR_NOERR;
 /** *************************/
 }
@@ -590,6 +598,9 @@ M2M_Return_T m2m_int(M2M_conf_T *p_conf){
 ** description: 注销整个 m2m，并退出
 *****************************************************/
 M2M_Return_T m2m_deint(void){
+	mfree(m2m_conf.p_version);
+	m2m_conf.p_version = NULL;
+
     return 0;
 }
 

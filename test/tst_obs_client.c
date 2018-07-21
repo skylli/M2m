@@ -54,6 +54,8 @@ int main(void){
     conf.max_router_tm = 10*60*1000;
     conf.do_relay = 0;
     ret = m2m_int(&conf);
+	
+	m2m_printf("version %s \n",m2m_version());
 
     m2m.net = m2m_net_creat( &device_id,TST_CLI_OBS_LOCAL_PORT, strlen(TST_CLI_OBS_LOCAL_KEY), TST_CLI_OBS_LOCAL_KEY,\
                              NULL,NULL, NULL,(m2m_func)obs_cli_callback, NULL);
