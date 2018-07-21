@@ -173,11 +173,13 @@ size_t m2m_session_creat(size_t net,M2M_id_T *p_id,u8 *p_host,int port, int key_
     arg.p_net = NULL;
     Session_T *p_s = NULL;
 
-    mmemset( (u8*)&arg, 0, sizeof(Net_Args_T));
+	u8 tmp_key[20], tmp_newkey[20];
+	_RETURN_EQUAL_0(net, 0);
+	mmemset( (u8*)&arg, 0, sizeof(Net_Args_T));
     mcpy( (u8*) &arg.remote_id, (u8*)p_id,sizeof(M2M_id_T));
     
     m2m_log_debug("net <%p> creating session...", (void*)net);
-
+	
     // get ip or port.
     if( !p_host || !p_key){
         m2m_debug_level( M2M_LOG_WARN,"host or  secret key not find \n");
@@ -187,16 +189,24 @@ size_t m2m_session_creat(size_t net,M2M_id_T *p_id,u8 *p_host,int port, int key_
     arg.p_net = p_n;
     // get host
     arg.remote.p_host = p_host;
-    // get secret key
-    arg.enc.type = m2m_conf.def_enc_type;
-    arg.enc.keylen = key_len;
     arg.callback.func = func;
     arg.callback.p_user_arg = p_args;
-    arg.enc.p_enckey = p_key;
     arg.remote.dst_address.port = (u16) port;
     
     arg.len =0;
     arg.p_data = NULL;
+
+    // get secret key
+    arg.enc.type = m2m_conf.def_enc_type;
+	if(key_len < 16){
+			mmemset( tmp_key, 0, 20);
+			mcpy(tmp_key, p_key, key_len);
+			arg.enc.p_enckey = tmp_key;
+			arg.enc.keylen = 16;
+		}else{
+			arg.enc.p_enckey = p_key;
+			arg.enc.keylen = key_len;
+		}
 
     if( p_n->ioctl_session )
         p_s = (Session_T*) p_n->ioctl_session( M2M_NET_CMD_SESSION_CREAT, &arg,0);
@@ -276,27 +286,27 @@ M2M_Return_T m2m_session_token_update(M2M_T *p_m2m,m2m_func func, void *p_args){
 M2M_Return_T m2m_session_secret_set(M2M_T *p_m2m,int len,u8 *p_data,m2m_func func, void *p_args){
 
     int ret=0;
-    u8 *p = mmalloc(sizeof(Enc_T) + 17 );
-    Enc_T *p_enc = NULL;
+	Enc_T *p_enc = NULL;
     Net_Args_T arg;
+	u8 tmp_key[20];
 
     mmemset( (u8*)&arg, 0, sizeof(Net_Args_T));
     _NET_ARG_CPY(arg,p_m2m,func,p_args);
-    if( p == NULL){
-        return M2M_ERR_NULL;
-    }
-    p_enc = (Enc_T*) p;
-    p_enc->type = m2m_conf.def_enc_type;
-    p_enc->keylen = M_MIN(len,16);
-    mcpy((u8*)p_enc->key, (u8*)p_data,p_enc->keylen);
 
-    
+    arg.enc.type = m2m_conf.def_enc_type;
+	if(len < 16){
+			mmemset( tmp_key, 0, 20);
+			mcpy(tmp_key, p_data, len);
+			arg.p_data = tmp_key;
+			arg.len = 16;
+		}else{
+			arg.p_data = p_data;
+			arg.len = len;
+		}
+		
     m2m_log_debug("session (%p)updateing session secret key...", (void*)p_m2m->session);
-    arg.len = (u16)(sizeof(Enc_T) + 17);
-    arg.p_data = p;
     if(arg.p_net->ioctl_session)
         ret = ( arg.p_net->ioctl_session(M2M_NET_CMD_SESSION_SECRETKEY_SET,&arg,0) );
-    mfree(p);
     
     return ret;
 }

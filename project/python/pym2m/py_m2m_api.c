@@ -14,10 +14,10 @@ PyMODINIT_FUNC initpym2m(void)
 #else /* PY_MAJOR_VERSION >= 3 */
 static struct PyModuleDef pym2m_module_def = {
   PyModuleDef_HEAD_INIT,
-  "_hello",
-  "Internal \"_hello\" module",
+  "pym2m",
+  "m2m lib for python",
   -1,
-  hello_methods
+  pym2m_methods
 };
 
 PyMODINIT_FUNC PyInit_pym2m(void)

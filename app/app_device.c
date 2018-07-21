@@ -97,6 +97,7 @@ int main(int argc, char **argv){
 void dev_callback(int code,M2M_packet_T **pp_ack_data,M2M_packet_T *p_recv_data,void *p_arg){
     m2m_log_debug("callback:: receive code = %d\n", code);
 
+	app_d_end = (app_d_end> 0)?app_d_end-1:0;
     switch(code){
         case M2M_REQUEST_BROADCAST: 
             {

@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 2.6)
 project (M2m)
 # The version number.
 set(M2M_VERSION_MAJOR 0)
-set(M2M_VERSION_MINOR 0)
+set(M2M_VERSION_MINOR 1)
 set(M2M_VERSION_PATCH 1) 
 
 # 路劲设置
@@ -21,6 +21,10 @@ SET( LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 # 设置库文件名
 set( m2m_lib "m2m_lib.${M2M_VERSION_MAJOR}.${M2M_VERSION_MINOR}.${M2M_VERSION_PATCH}")
 
+configure_file(
+    "${PROJECT_SOURCE_DIR}/config/cmakeValue.h.in"
+    "${PROJECT_SOURCE_DIR}/include/BuildValue.h"
+)
 
 # 搜索当前目录下所有的头文件
 # file(GLOB_RECURSE Foo_HEADERS "*.h")

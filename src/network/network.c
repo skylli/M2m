@@ -22,7 +22,7 @@
 
 
 /***** network setting ..**************************************/
-#define _MAX_SESSION_IDLE_TIME_MS   (3*60*1000)
+#define _MAX_SESSION_IDLE_TIME_MS   (60*1000)
 
 #define _RETRANSMIT_DEFAULT_INTERVAL (1) 
 // 连续 发送 _OBSERVER_MAX_LOST 个包均没有收到回应，认为该 observer 被弃用，需要回收.
@@ -221,7 +221,7 @@ static void _session_update_sendtime(Session_T *p_s){
     }
 
 }
-static INLINE BOOL _net_session_alive_timeout(Session_T *p_s){
+static INLINE BOOL _session_timeout(Session_T *p_s){
     return (A_BIGER_U32( m2m_current_time_get(), (p_s->last_alive_tm + _MAX_SESSION_IDLE_TIME_MS)) );
 }
 static u32 _net_ctoken_creat(Net_T *p_n){
@@ -412,7 +412,8 @@ static M2M_Return_T _net_session_slave_creat(Net_T *p_net,M2M_proto_recv_rawpkt_
     p_s->stoken = p_raw->stoken;
 
 	mcpy((u8*) &p_s->dest_addr, (u8*)&p_raw->remote, sizeof( M2M_Address_T));
-	mcpy((u8*)&p_s->callback, (u8*)&p_net->callback, sizeof(Func_arg));
+	// do not copy call back arg may be double free.
+	//mcpy((u8*)&p_s->callback, (u8*)&p_net->callback, sizeof(Func_arg));
 	mcpy( (u8*)&p_s->protocol,(u8*)&p_net->protocol, sizeof(M2M_Protocol_T));
     // 
     mcpy( (u8*)&p_s->dst_id,(u8*)&p_raw->src_id, ID_LEN);
@@ -474,7 +475,7 @@ static Session_T *session_creat_rq(Net_Args_T *p_args,int flags){
     _ne_sendingId_init(p_s);
     
     // 2.1 获取 token。
-    ret = session_rq_node_send( M2M_PROTO_IOC_CMD_TOKEN_RQ,M2M_PROTO_CMD_TOKEN_RQ,&args,p_s, &p_args->callback,0);
+    ret = session_rq_node_send( M2M_PROTO_IOC_CMD_TOKEN_RQ,M2M_PROTO_CMD_TOKEN_RQ,&args,p_s, NULL,0);
     _RETURN_UNEQUAL_FREE(ret, M2M_ERR_NOERR, p_s,NULL);
     
     // 2.2 设置 session 状态为缺失 ctoken 
@@ -675,7 +676,7 @@ static M2M_Return_T obs_notify_retransmit( Net_T *p_net,Session_T *p_s,M2M_reque
 // obs index > 1 则为 notify 推送，
 // obs index == 0x00 则为 observer stop，把该 node 从 session 中摘掉。	
 /** 该函数只为 slave 调用，只处理  observer start request，observer stop request, notify ack。*****/
-static M2M_Return_T obs_rq_handle(Session_T *p_s, M2M_proto_recv_rawpkt_T *p_raw,M2M_proto_dec_recv_pkt_T *p_dec){
+static M2M_Return_T obs_rq_handle( Net_T *p_net,Session_T *p_s, M2M_proto_recv_rawpkt_T *p_raw,M2M_proto_dec_recv_pkt_T *p_dec){
 	// get obs index
 	M2M_observer_T *p_obs = (M2M_observer_T*)p_dec->p_extra;
 	int ret = 0;
@@ -697,11 +698,11 @@ static M2M_Return_T obs_rq_handle(Session_T *p_s, M2M_proto_recv_rawpkt_T *p_raw
 
 		p_node->cmd = M2M_PROTO_CMD_SESSION_OBSERVER_RQ;
 		p_node->messageid = p_dec->msgid;
-		mcpy( (u8*)&p_node->callback_arg, (u8*)&p_s->callback, sizeof(Func_arg));
+		///mcpy( (u8*)&p_node->callback_arg, (u8*)&p_net->callback, sizeof(Func_arg));
 		
 		p_nobs->ack_type = p_obs->ack_type;
 		p_nobs->index = p_obs->index;
-		mcpy((u8*)&p_nobs->callback, (u8*)&p_s->callback, sizeof(Func_arg) );
+		//mcpy((u8*)&p_nobs->callback, (u8*)&p_net->callback, sizeof(Func_arg) );
 		
 		p_node->extra_cmd = EXTRA_CMD_NOTIFY;
 		p_node->p_extra = p_nobs;
@@ -710,11 +711,11 @@ static M2M_Return_T obs_rq_handle(Session_T *p_s, M2M_proto_recv_rawpkt_T *p_raw
 		LL_APPEND(p_s->p_request_head, p_node);
 		m2m_log_debug("session (%p) creat observer node [%p]", p_s, p_node);
 		// tell application we get an observer start through call back.
-		if(p_s->callback.func){
+		if(p_net->callback.func){
 			M2M_obs_payload_T obs_pkt;
 			obs_pkt.p_obs_node = p_node;
 			obs_pkt.p_payload  = &p_dec->payload;
-			p_s->callback.func( (int)M2M_REQUEST_OBSERVER_RQ, &p_ack_payload, &obs_pkt, p_s->callback.p_user_arg); 
+			p_net->callback.func( (int)M2M_REQUEST_OBSERVER_RQ, &p_ack_payload, &obs_pkt, p_net->callback.p_user_arg); 
 		}
 	// ack to the remote.
         ret = net_ack( (u16)M2M_HTTP_OK, M2M_PROTO_IOC_CMD_SESSION_OBSERVER_ACK, \
@@ -726,11 +727,11 @@ static M2M_Return_T obs_rq_handle(Session_T *p_s, M2M_proto_recv_rawpkt_T *p_raw
 		M2M_request_pkt_T *p_del = _net_session_node_find(p_s, p_dec->msgid);
 		_RETURN_EQUAL(p_del, NULL, M2M_ERR_INVALID);
 		// tell application that observer will be remove.
-		if(p_del->callback_arg.func){
+		if( p_net->callback.func ){
 			M2M_obs_payload_T obs_pkt;
 			obs_pkt.p_obs_node = p_del;
 			obs_pkt.p_payload  = NULL;
-			p_del->callback_arg.func( (int)M2M_ERR_OBSERVER_DISCARD, NULL, &obs_pkt, p_s->callback.p_user_arg); 
+			p_net->callback.func( (int)M2M_ERR_OBSERVER_DISCARD, NULL, &obs_pkt, p_net->callback.p_user_arg); 
 		}
 		session_node_destory(&p_s->p_request_head, &p_del);
 		_SESSION_NODE_CNT_REDUCE(p_s);
@@ -770,8 +771,8 @@ static M2M_Return_T obs_notify_rq_handle(Session_T *p_s, M2M_request_pkt_T *p_no
 	if( A_BIGER_U16(p_robs->index, p_nobs->index)){
 		M2M_packet_T *p_ack_payload = NULL;
 	// get notify and push to application.
-		 if(p_nobs->callback.func){
-			p_nobs->callback.func( (int)M2M_REQUEST_NOTIFY_PUSH, &p_ack_payload, &p_dec->payload, p_nobs->callback.p_user_arg);
+		 if(p_node->callback_arg.func){
+			p_node->callback_arg.func( (int)M2M_REQUEST_NOTIFY_PUSH, &p_ack_payload, &p_dec->payload, p_node->callback_arg.p_user_arg);
 			p_nobs->index = p_robs->index;
 		 }
 	// ack notify.
@@ -966,7 +967,7 @@ static size_t session_obs_start(Net_Args_T *p_args,int flags){
 	
 	p_request_node->extra_cmd = EXTRA_CMD_OBSERVER;
 	p_obs = _obs_alloc( *((Pkt_ack_type_T*)p_args->p_extra), OBS_TYPE_ON);
-	mcpy((u8*)&p_obs->callback, (u8*)&p_args->callback, sizeof(Func_arg));
+	//mcpy((u8*)&p_obs->callback, (u8*)&p_args->callback, sizeof(Func_arg));
 	p_request_node->p_extra = p_obs;
 	if( !p_request_node->p_extra ){
 		session_node_destory(&p_s->p_request_head, &p_request_node);
@@ -1156,7 +1157,8 @@ static M2M_Return_T session_destory(Net_Args_T *p_a,int flag){
     
     // 1. 清理所有的 node.
     M2M_request_pkt_T *p_el = NULL, *p_tmp = NULL;
-     LL_FOREACH_SAFE( p_s->p_request_head, p_el,p_tmp){
+	_RETURN_EQUAL_0(p_s, M2M_ERR_NOERR);
+    LL_FOREACH_SAFE( p_s->p_request_head, p_el,p_tmp){
         
          _ne_sendingId_increase(p_s);
         session_node_destory( &p_s->p_request_head, &p_el);
@@ -1411,7 +1413,7 @@ NO_SESSION_HANDLE_END:
 ** 2. 保存 key，往后该 net 所有的 session 均使用该 key。
 ** 3. M2M_PROTO_CMD_DATA_RQ 把 payload 上传到上层。
 ***/
-static M2M_Return_T _net_recv_slave_hanle(Session_T *p_s,M2M_proto_recv_rawpkt_T *p_raw){
+static M2M_Return_T _net_recv_slave_hanle(Net_T *p_net,Session_T *p_s,M2M_proto_recv_rawpkt_T *p_raw){
 
     int ret = M2M_ERR_NOERR;
     M2M_proto_dec_recv_pkt_T pkt_dec,*p_dec;
@@ -1477,7 +1479,8 @@ static M2M_Return_T _net_recv_slave_hanle(Session_T *p_s,M2M_proto_recv_rawpkt_T
 		        m2m_debug_level(M2M_LOG_DEBUG, "session (%p) receive new key.",p_s);
 		        m2m_debug_level_noend(M2M_LOG_DEBUG, "session receive new key : ");
 		        m2m_byte_print(p_dec->payload.p_data,p_dec->payload.len);
-		        ret =  p_s->callback.func( M2M_REQUEST_SESSION_SET_SECRETKEY,&p_ack_payload, &p_dec->payload,p_s->callback.p_user_arg);
+				if(p_net->callback.func	)
+		        	ret =  p_net->callback.func( M2M_REQUEST_SESSION_SET_SECRETKEY,&p_ack_payload, &p_dec->payload,p_net->callback.p_user_arg);
 		        ret = net_ack( (u16)M2M_HTTP_OK, M2M_PROTO_IOC_CMD_SESSION_SETKEY_ACK, p_s->protocol.func_proto_ioctl, \
 		                        &p_s->enc, p_raw,(M2M_packet_T*)p_ack_payload, NULL);
 		        PACKET_FREE(p_ack_payload);
@@ -1503,7 +1506,8 @@ static M2M_Return_T _net_recv_slave_hanle(Session_T *p_s,M2M_proto_recv_rawpkt_T
        	case M2M_PROTO_CMD_DATA_RQ:
         // 把数据回应到应用层。
             p_s->messageid = p_dec->msgid;
-            ret =  p_s->callback.func( M2M_REQUEST_DATA, &p_ack_payload, &p_dec->payload,p_s->callback.p_user_arg);
+			if(p_net->callback.func)
+            	ret =  p_net->callback.func( M2M_REQUEST_DATA, &p_ack_payload, &p_dec->payload,p_net->callback.p_user_arg);
             ret = net_ack( (u16)M2M_HTTP_OK, M2M_PROTO_IOC_CMD_DATA_ACK, \
 							p_s->protocol.func_proto_ioctl,&p_s->enc, p_raw,(M2M_packet_T*)p_ack_payload, NULL);
             PACKET_FREE(p_ack_payload);
@@ -1511,7 +1515,7 @@ static M2M_Return_T _net_recv_slave_hanle(Session_T *p_s,M2M_proto_recv_rawpkt_T
             break;
 		
 		case M2M_PROTO_CMD_SESSION_OBSERVER_RQ:
-			ret = obs_rq_handle(p_s,p_raw, p_dec);
+			ret = obs_rq_handle(p_net, p_s,p_raw, p_dec);
 			break;
 	
 		case M2M_PROTO_CMD_SESSION_OBSERVER_ACK:
@@ -1738,7 +1742,7 @@ static M2M_Return_T _net_recv_handle( Net_T *p_net){
         goto RECV_HAND_END;
     }else {
             if( p_s->type == SESSION_TYPE_SLAVE ){
-                ret = _net_recv_slave_hanle(p_s, &recv_rawpkt);
+                ret = _net_recv_slave_hanle(p_net,p_s, &recv_rawpkt);
             } else if(p_s->type == SESSION_TYPE_MASTER){
                 ret  = _net_recv_master_hanel(p_net,p_s, &recv_rawpkt);
             }
@@ -1836,7 +1840,7 @@ static M2M_Return_T session_keepAlive(Net_T *p_net){
 static M2M_Return_T net_session_clearn(Net_T *p_net){
     Session_T *p_el,*p_tmp;
     LL_FOREACH_SAFE( p_net->p_session_head, p_el, p_tmp){
-    if( p_el->type == SESSION_TYPE_SLAVE && _net_session_alive_timeout(p_el) ){
+    if( p_el->type == SESSION_TYPE_SLAVE && _session_timeout(p_el) ){
             Net_Args_T na;
             na.p_net = p_net;
             na.p_s = p_el;
@@ -1934,6 +1938,7 @@ static M2M_Return_T net_request_packet_destory(Net_request_node_T **pp_node ){
 		return M2M_ERR_INVALID;
 	if( p_node->callback_arg.func){
 		p_node->callback_arg.func( (int)M2M_ERR_REQUEST_DESTORY, NULL, NULL, p_node->callback_arg.p_user_arg); 
+		p_node->callback_arg.p_user_arg = NULL;
 	}
     if( pp_node && p_node && p_node->payload.p_data ){
         mfree( p_node->payload.p_data);
@@ -2318,9 +2323,10 @@ M2M_Return_T net_destory(Net_T *p_net){
     }
 
 	// touch callback
-	if( p_net->callback.func )
+	if( p_net->callback.func ){
 		p_net->callback.func( (int)M2M_ERR_REQUEST_DESTORY, NULL, NULL,p_net->callback.p_user_arg); 
-
+		p_net->callback.p_user_arg = NULL;
+	}
 	net_requestlist_destory(p_net);
     // destory protocol, 例如关闭 socket.
     m2m_protocol_deInit(&p_net->protocol);

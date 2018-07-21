@@ -126,7 +126,7 @@ int main(int argc, char **argv){
         return -1;
     }
 	// creat session 
-    m2m.session = m2m_session_creat(m2m.net, &r_id, p_remote_host, r_port, r_keylen, r_key, (m2m_func)app_callback, NULL);
+    m2m.session = m2m_session_creat(m2m.net, &r_id, p_remote_host, r_port, r_keylen, r_key, (m2m_func)NULL, NULL);
     if( !m2m.session){
         m2m_printf("session creat failt !!\n");
         m2m_net_destory(m2m.net);

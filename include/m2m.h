@@ -23,6 +23,9 @@ extern "C"
 #define M2M_LOG_WARN   (3)
 #define M2M_LOG_ERROR  (4)
 
+#ifdef M2M_VERSION_MAJOR
+#include "BuildValue.h "
+#endif
 
 #define m2m_printf  printf
 typedef enum M2M_BASE_CMD{
@@ -39,9 +42,9 @@ typedef enum M2M_RETURN_T
     M2M_REQUEST_SESSION_SET_SECRETKEY = 102, 
     M2M_REQUEST_BROADCAST = 102,
     M2M_REQUEST_BROADCAST_ACK = 103,
-    M2M_REQUEST_OBSERVER_RQ = 104,
-    M2M_REQUEST_NOTIFY_PUSH = 105,
-    M2M_REQUEST_NOTIFY_ACK = 106,
+    M2M_REQUEST_OBSERVER_RQ = 104,	//在回调中返回时 receive 不为 NULL 则为 M2M_obs_payload_T 会携带 notify index
+    M2M_REQUEST_NOTIFY_PUSH = 105,	
+    M2M_REQUEST_NOTIFY_ACK = 106, //在回调中返回 receive 不为 NULL 则为 M2M_obs_payload_T 会携带 notify index
     
 /***************** http return *************************/
     M2M_HTTP_OK = 200,
@@ -49,12 +52,12 @@ typedef enum M2M_RETURN_T
     M2M_HTTP_NO_CONTENT = 204,
     M2M_HTTP_BROADCAST = 205,
     
-    M2M_ERR_NOACK           = 102,
-    M2M_HTTP_ID_NOMATHC = 103,
-    M2M_HTTP_TOKEN_NOMATCH = 104,
-    M2M_HTTP_MSGID_NOMATCH = 105,
-    M2M_HTTP_SECRET_ERR     = 106,
-    M2M_HTTP_INVALID_PROTOCODE_ERR = 107,
+    M2M_ERR_NOACK           = 302,
+    M2M_HTTP_ID_NOMATHC = 303,
+    M2M_HTTP_TOKEN_NOMATCH = 304,
+    M2M_HTTP_MSGID_NOMATCH = 305,
+    M2M_HTTP_SECRET_ERR     = 306,
+    M2M_HTTP_INVALID_PROTOCODE_ERR = 307,
     
 /*****************client inner error*******************/
     M2M_ERR_NOERR = 0,
@@ -67,7 +70,7 @@ typedef enum M2M_RETURN_T
     M2M_ERR_RETRANSMIT = -6,
     M2M_ERR_TIMEOUT     =-7,
 	M2M_ERR_REQUEST_DESTORY	=-8,
-	M2M_ERR_OBSERVER_DISCARD = -9,
+	M2M_ERR_OBSERVER_DISCARD = -9,//回调中返回时， receive 一旦不为空，则 receive 为 M2M_obs_payload_T 格式
 
     M2M_ERR_PROTO_PKT_BUILD = -13
 /*****************************************/

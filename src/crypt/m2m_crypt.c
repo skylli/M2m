@@ -31,8 +31,10 @@ int data_enc(const char *src, char *dst, int len, int keylen, u8 *p_key)
     u8  tmp_input[16];
     int count;
 
-    if( keylen != 16 || !p_key )
-        return -1;
+    if( keylen != 16 || !p_key ){
+		m2m_log_warn("key len error!!!");
+		return -1;
+    	}
     
     //m2m_bytes_dump("befor encode data :", src,len);
     count = 0;
@@ -136,7 +138,7 @@ u8 crc8_count(const void* vptr, int len) {
   const u8 *data = vptr;
   unsigned crc = 0;
   int i, j;
-  for (j = len; j; j--, data++) {
+  for (j = len; j && data; j--, data++) {
     crc ^= (*data << 8);
     for(i = 8; i; i--) {
       if (crc & 0x8000)

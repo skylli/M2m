@@ -15,16 +15,16 @@
 /** 设备端 配置 ***********************************************************/
 #define TST_CLI_OBS_HOST      TCONF_HOST
 #define TST_CLI_OBS_LOCAL_ID    (3)
-#define TST_CLI_OBS_LOCAL_PORT  "9595"//TCONF_APP_PORT
+#define TST_CLI_OBS_LOCAL_PORT  (9595)//TCONF_APP_PORT
 #define TST_CLI_OBS_LOCAL_KEY   TCONF_APP_KEY
 
 #define TST_CLI_OBS_SERVER_HOST TCONF_HOST
 #define TST_CLI_OBS_SERVER_PORT TCONF_SERVER_PORT
 
-#define TST_CLI_OBS_REMOTE_ID    (2)
-#define TST_CLI_OBS_REMOTE_HOST  TCONF_HOST//("ec2-54-153-105-41.us-west-1.compute.amazonaws.com")
-#define TST_CLI_OBS_REMOTE_PORT     TCONF_DEVICE_PORT
-#define TST_CLI_OBS_REMOTE_KEY1     TCONF_DEVICE_KEY
+#define TST_CLI_OBS_REMOTE_ID    (1)
+#define TST_CLI_OBS_REMOTE_HOST  "127.0.0.1"//("ec2-54-153-105-41.us-west-1.compute.amazonaws.com")
+#define TST_CLI_OBS_REMOTE_PORT   (9627)//TCONF_DEVICE_PORT
+#define TST_CLI_OBS_REMOTE_KEY1   "111"//TCONF_DEVICE_KEY
 
 #define TST_CLI_OBS_DATA1	("OBSERVER DATA1")
 /*************************************************************/
@@ -48,7 +48,7 @@ int main(void){
 	int notify_break = 0;
 	mmemset(&rid, 0, sizeof(M2M_id_T) );
     device_id.id[ID_LEN -1] = TST_CLI_OBS_LOCAL_ID; // 
-	rid.id[ID_LEN - 1] = TST_CLI_OBS_REMOTE_ID;
+	rid.id[0] = TST_CLI_OBS_REMOTE_ID;
 	
     conf.def_enc_type = M2M_ENC_TYPE_AES128;
     conf.max_router_tm = 10*60*1000;
@@ -71,16 +71,18 @@ int main(void){
 	// start to observer 
 	p_node = m2m_session_observer_start(&m2m, TYPE_ACK_MUST, strlen(TST_CLI_OBS_DATA1), TST_CLI_OBS_DATA1, obs_cli_notify_callback, &notify_break);
 #if 1
-   //while(loop_count < 3){
+   	//while(loop_count < 3){
 	while(1){
 		m2m_trysync( m2m.net );
-		//if(notify_break > 30)
+		//if(notify_break > 0)
 		//	break;
 		if(notify_destory){
 			m2m_printf("re observer new ............");
 			p_node = m2m_session_observer_start(&m2m, TYPE_ACK_MUST, strlen(TST_CLI_OBS_DATA1), TST_CLI_OBS_DATA1, obs_cli_notify_callback, &notify_break);
 			notify_destory = 0;
 		}
+		if( loop_count >  3)
+			break;
     }
 #endif
 	if(p_node)
@@ -106,7 +108,7 @@ void obs_cli_callback(int code,M2M_packet_T **pp_ack_data,M2M_packet_T *p_recv_d
                  if( p_recv_data->len > 0 && p_recv_data->p_data){
                       m2m_log("server receive data : %s\n",p_recv_data->p_data);
                 }
-                 loop_count++;
+                 
                 *pp_ack_data = p_ack;
             }
             break;
@@ -140,6 +142,7 @@ void obs_cli_notify_callback(int code,M2M_packet_T **pp_ack_data, M2M_packet_T *
 				  if(pp_ack_data)
 				 		*pp_ack_data = p_ack;
 				  (*((int*)p_arg))++;
+				  loop_count++;
 			 }
 			break;
 		case M2M_ERR_OBSERVER_DISCARD:
@@ -150,6 +153,9 @@ void obs_cli_notify_callback(int code,M2M_packet_T **pp_ack_data, M2M_packet_T *
 
 			break;
 
+	
+		case M2M_ERR_REQUEST_DESTORY:
+			notify_destory =1;
 		default:
 			break;
 	}       
