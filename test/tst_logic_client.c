@@ -136,11 +136,11 @@ int main(){
     ret = m2m_session_data_send(&m2m, strlen(TST_DATA_STR), TST_DATA_STR, (m2m_func)test_callback ,&tst_ret[TST_DATA]);
     while(1){
         m2m_trysync(m2m.net);
-        if(tst_ret[TST_SESSION_CREAT] && tst_ret[TST_DATA] )
+		tst_ret[TST_SESSION_CREAT] = tst_ret[TST_DATA];
+        if( tst_ret[TST_SESSION_CREAT])
             break;
     }
 	/** 订阅***/
-	
 	p_obs_node = m2m_session_observer_start(&m2m, TYPE_ACK_MUST, strlen(TCONF_OBSERVER_DATA), TCONF_OBSERVER_DATA,(m2m_func)test_callback, &tst_ret[TST_OBS_ON]);
     WAIT_UNTIL(tst_ret[TST_OBS_ON],1, m2m.net);
 

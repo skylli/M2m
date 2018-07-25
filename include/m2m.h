@@ -89,6 +89,7 @@ typedef enum ENCRYPT_TYPT_T{
     M2M_ENC_TYPE_MAX
 }Encrypt_type_T;
 
+#define ENC_KEY_LEN	(16)
 /******
 *  init --->M2M_SESSION_STA_NOTOKEN ---> (client)send token request --->server 
 *      |                                |                                 |
@@ -152,7 +153,7 @@ typedef struct M2M_OBS_PAYLOAD_T{
 
 // 路由表中每一项的结构
 
-#define ID_LEN  (8)
+#define ID_LEN  (16)
 typedef struct  M2M_ID_T{
     u8 id[ID_LEN];
 }M2M_id_T;

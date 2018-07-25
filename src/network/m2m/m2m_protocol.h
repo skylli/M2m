@@ -205,9 +205,11 @@ typedef enum M2M_PROTO_CMD_T{
 #define CPY_DEV_ID(d,s)         ( mcpy((u8*) &d, (u8*)&s,sizeof(M2M_id_T)) )
 
 #define DEV_ID_PRINT(level,devid, head)  m2m_debug_level_noend(level,\
-                                                        "%s: %x%x%x%x:%x%x%x%x",head,\
+                                                        "%s: %x%x%x%x%x%x%x%x:%x%x%x%x%x%x%x%x",head,\
                                                         devid.id[0],devid.id[1],devid.id[2],devid.id[3],\
-                                                        devid.id[4],devid.id[5],devid.id[6],devid.id[7])
+                                                        devid.id[4],devid.id[5],devid.id[6],devid.id[7],\ 
+                                                        devid.id[8],devid.id[9],devid.id[10],devid.id[11],\
+                                                        devid.id[12],devid.id[13],devid.id[14],devid.id[15])
 #define DEV_ADDR_PRINT(addr_in)  m2m_printf("Address:%u.%u.%u.%u",addr_in.ip[0], \
                                                 addr_in.ip[1], addr_in.ip[2],addr_in.ip[3])
                                                 

@@ -14,7 +14,7 @@
 
 /** 设备端 配置 ***********************************************************/
 #define TST_LOCAL_HOST      TCONF_HOST
-#define TST_DEV_LOCAL_ID    (2)
+#define TST_DEV_LOCAL_ID    TCONF_DEV_ID
 #define TST_DEV_LOCAL_PORT  TCONF_DEVICE_PORT
 #define TST_DEV_LOCAL_KEY   TCONF_DEVICE_KEY
 

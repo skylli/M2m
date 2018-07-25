@@ -105,11 +105,10 @@ M2M_Return_T m2m_net_destory(size_t net){
 
 M2M_Return_T m2m_net_secretkey_set(size_t net,M2M_id_T *p_id,u8 *p_host,int port, int key_len,u8 *p_key,
 										int newkey_len, u8 *p_newkey,m2m_func func, void *p_args){
-	int ret = 0;
+	int ret = 0, klen = 0;
 	Net_T *p_net ;
-	u8 tmp_key[20], tmp_newkey[20];
-    u8 *p = mmalloc( sizeof(Enc_T) + 17 );
-	Enc_T *p_new_enc = NULL;
+	u8 tmp_key[20], new_key[sizeof(Enc_T) + ENC_KEY_LEN +1];
+	Enc_T *p_enc = NULL;
 
 	if( !net || !p_host || !p_id || !p_newkey )
     	return M2M_ERR_INVALID;
@@ -123,25 +122,29 @@ M2M_Return_T m2m_net_secretkey_set(size_t net,M2M_id_T *p_id,u8 *p_host,int port
 	arg.remote.p_host = p_host;
 	arg.remote.dst_address.port = (u16)port;
 	
-	// get remote key.
-	arg.enc.type = m2m_conf.def_enc_type;
-	if(key_len < 16){
-		mmemset( tmp_key, 0, 20);
-		mcpy(tmp_key, p_key, key_len);
-		arg.enc.p_enckey = tmp_key;
-		arg.enc.keylen = 16;
-	}else{
-		arg.enc.p_enckey = p_key;
-		arg.enc.keylen = key_len;
-	}
-
-	p_new_enc = (Enc_T*)p;
-	p_new_enc->type = m2m_conf.def_enc_type;
-	p_new_enc->keylen = M_MIN(16, newkey_len);
-	mcpy((u8*)p_new_enc->key, p_newkey, p_new_enc->keylen);
+	// get old key
+    arg.enc.type = m2m_conf.def_enc_type;
+	if(key_len < ENC_KEY_LEN){
+			mmemset( tmp_key, 0, 20);
+			mcpy(tmp_key, p_key, key_len);
+			arg.enc.p_enckey = tmp_key;
+			arg.enc.keylen = ENC_KEY_LEN;
+		}else{
+			arg.enc.p_enckey = p_key;
+			arg.enc.keylen = key_len;
+		}
+	// get new remote key.
+	mmemset(new_key, 0, sizeof(Enc_T) + ENC_KEY_LEN +1);
+	p_enc = (Enc_T*)new_key;
+	p_enc->type = m2m_conf.def_enc_type;
 	
-	arg.p_data = p;
-	arg.len = sizeof(Enc_T) + 17;
+	klen = (newkey_len > ENC_KEY_LEN)?ENC_KEY_LEN:newkey_len;
+	p_enc->keylen = ENC_KEY_LEN;
+	
+	mcpy(p_enc->key,p_newkey, klen);
+	arg.p_data = (u8*)p_enc;	
+	arg.len = sizeof(Enc_T) + ENC_KEY_LEN;
+
 	arg.callback.func = func;
 	arg.callback.p_user_arg = p_args;
 
@@ -150,7 +153,6 @@ M2M_Return_T m2m_net_secretkey_set(size_t net,M2M_id_T *p_id,u8 *p_host,int port
 	if( p_net->ioctl_session )
        p_net->ioctl_session( M2M_NET_CMD_NET_SECRETKEY_SET, &arg,0);
 	
-	mfree(p);
 	return M2M_ERR_NOERR;
 }
 // 在 net 里创建一个会话
@@ -285,29 +287,33 @@ M2M_Return_T m2m_session_token_update(M2M_T *p_m2m,m2m_func func, void *p_args){
 *****************************************************/
 M2M_Return_T m2m_session_secret_set(M2M_T *p_m2m,int len,u8 *p_data,m2m_func func, void *p_args){
 
-    int ret=0;
+    int ret=0, klen = 0;
 	Enc_T *p_enc = NULL;
     Net_Args_T arg;
-	u8 tmp_key[20];
+	u8 tmp_key[sizeof(Enc_T) + ENC_KEY_LEN +1];
 
+
+	if(len <= 0 || !p_data)
+		return M2M_ERR_INVALID;
+	
     mmemset( (u8*)&arg, 0, sizeof(Net_Args_T));
-    _NET_ARG_CPY(arg,p_m2m,func,p_args);
+	mmemset(tmp_key, 0, sizeof(Enc_T) + ENC_KEY_LEN +1);
 
+	_NET_ARG_CPY(arg,p_m2m,func,p_args);
+	
     arg.enc.type = m2m_conf.def_enc_type;
-	if(len < 16){
-			mmemset( tmp_key, 0, 20);
-			mcpy(tmp_key, p_data, len);
-			arg.p_data = tmp_key;
-			arg.len = 16;
-		}else{
-			arg.p_data = p_data;
-			arg.len = len;
-		}
-		
+	p_enc = tmp_key;
+	p_enc->type = m2m_conf.def_enc_type;
+	p_enc->keylen = ENC_KEY_LEN;
+	klen = (len > ENC_KEY_LEN)?ENC_KEY_LEN:len;
+	mcpy(p_enc->key,p_data, klen);
+	
+	arg.p_data = (u8*)p_enc;
+	arg.len = sizeof(Enc_T) + ENC_KEY_LEN;
+
     m2m_log_debug("session (%p)updateing session secret key...", (void*)p_m2m->session);
     if(arg.p_net->ioctl_session)
         ret = ( arg.p_net->ioctl_session(M2M_NET_CMD_SESSION_SECRETKEY_SET,&arg,0) );
-    
     return ret;
 }
 
