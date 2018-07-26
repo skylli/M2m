@@ -53,8 +53,8 @@ set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb")
 set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
 
 # 生成共享库
-ADD_LIBRARY(${m2m_lib} STATIC ${SUBLIB_UTIL} ${SUBLIB_PLATFORM} ${SUBLIB_CRYPT} ${SUBLIB_NETWORK} ${SUBLIB_API} ${SUBLIB_THREE_HADC})
-ADD_LIBRARY(${m2m_share} SHARED ${SUBLIB_UTIL} ${SUBLIB_PLATFORM} ${SUBLIB_CRYPT} ${SUBLIB_NETWORK} ${SUBLIB_API} ${SUBLIB_THREE_HADC})
+ADD_LIBRARY(m2m STATIC ${SUBLIB_UTIL} ${SUBLIB_PLATFORM} ${SUBLIB_CRYPT} ${SUBLIB_NETWORK} ${SUBLIB_API} ${SUBLIB_THREE_HADC})
+#ADD_LIBRARY(${m2m_share} SHARED ${SUBLIB_UTIL} ${SUBLIB_PLATFORM} ${SUBLIB_CRYPT} ${SUBLIB_NETWORK} ${SUBLIB_API} ${SUBLIB_THREE_HADC})
 
 # sample 应用实例
 # If necessary, use the RELATIVE flag, otherwise each source file may be listed 
@@ -68,7 +68,7 @@ foreach( testsourcefile ${TST_SOURCES} )
     get_filename_component(TST_EXE ${testsourcefile} NAME_WE)
     add_executable( ${TST_EXE} ${testsourcefile} )
     # Make sure YourLib is linked to each app
-    target_link_libraries( ${TST_EXE} ${m2m_lib} pthread )
+    target_link_libraries( ${TST_EXE} m2m pthread )
 endforeach( testsourcefile ${TST_SOURCES} )
 
 # sample 应用实例
@@ -79,5 +79,5 @@ foreach( applicationfile ${APP_SOURCES} )
     get_filename_component(APP_EXE ${applicationfile} NAME_WE)
     add_executable( ${APP_EXE} ${applicationfile} )
     # Make sure YourLib is linked to each app
-    target_link_libraries( ${APP_EXE} ${m2m_lib} pthread )
+    target_link_libraries( ${APP_EXE} m2m pthread )
 endforeach( applicationfile ${APP_SOURCES} )

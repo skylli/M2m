@@ -13,7 +13,7 @@
 #include "../../include/m2m_port.h"
 
 #include "../../config/config.h"
-#include "../util/m2m_log.h"
+#include "../../include/m2m_log.h"
 #include "m2m/m2m_protocol.h"
 
 #ifdef HAS_LINUX_MUTEX
@@ -1233,16 +1233,20 @@ static M2M_Return_T _net_secret_key_update(Net_enc_T *p_enc,u8 *p_key,int enc_le
 
 // 中转包
 static M2M_Return_T _net_relay_handle(Net_T *p_net, M2M_proto_recv_rawpkt_T *p_raw){
-
-    M2M_Address_T *p_addr = m2m_relay_id_find(p_net->host.p_router_list, &p_raw->dst_id);
-    if(!p_addr)
+	int ret = 0 ;
+    M2M_Address_T addr;
+	mmemset((u8*)&addr, 0, sizeof(M2M_Address_T ));
+    if( !m2m_relay_id_find(&addr,p_net->host.p_router_list, &p_raw->dst_id))
         return M2M_ERR_NOERR;
 
     M2M_protocol_relay_T args;
+
+	// 注册在线，防止回包接不到.
+    _ROUTER_LIST_ADD_DEVICE(p_net,p_raw);
     mmemset((u8*)&args,0,sizeof(M2M_protocol_relay_T));
 
     args.socket_fd = p_net->protocol.socket_fd;
-    args.p_remote_addr = p_addr;
+    args.p_remote_addr = &addr;
     args.p_payload = &p_raw->payload;
 
     return p_net->protocol.func_proto_ioctl(M2M_PROTO_IOC_CMD_RELAY, &args, 0);
@@ -1334,10 +1338,11 @@ static M2M_Return_T _net_recv_handle_without_session
         case M2M_PROTO_CMD_ONLINK_CHECK_RQ:
             {   
                 if( p_dec->payload.p_data && p_dec->payload.len == sizeof(M2M_id_T)){
-                    M2M_Address_T *p_addr = m2m_relay_id_find( p_net->host.p_router_list, (M2M_id_T*) p_dec->payload.p_data);
-                    if( p_addr){ //  id 在路由记录里.
+					M2M_Address_T addr;
+					mmemset((u8*)&addr, 0 ,sizeof(M2M_Address_T));				
+                    if( m2m_relay_id_find(&addr, p_net->host.p_router_list, (M2M_id_T*) p_dec->payload.p_data) ){ //  id 在路由记录里.
                         ack_payload.len = sizeof( M2M_Address_T);
-                        ack_payload.p_data = (u8*)p_addr;
+                        ack_payload.p_data = (u8*)&addr;
                         ret = net_ack( (u16)M2M_HTTP_OK, M2M_PROTO_IOC_CMD_ONLINK_CHECK_ACK, \
 							p_net->protocol.func_proto_ioctl,&enc, p_raw, &ack_payload, NULL);
                     }else{ // id 不在路由记录里
@@ -1727,15 +1732,17 @@ static M2M_Return_T _net_recv_handle( Net_T *p_net){
         goto RECV_HAND_END;
     }
 #endif // CONF_BROADCAST_ENABLE
-    // 刷新设备的在线时间。
-    _ROUTER_LIST_ADD_DEVICE(p_net,p_raw);
+
 // 2. 若不是发送给本地则查询是否需要转发.
     if(  !DEV_ID_EQUAL( p_net->my, recv_rawpkt.dst_id)){
-        // relay package.
+        // relay package. id　不匹配
         m2m_debug_level( M2M_LOG_DEBUG,"Id was not match.");
         ret = _net_relay_handle(p_net,&recv_rawpkt);
         goto RECV_HAND_END;
     }
+	// id 匹配 正确
+	// 刷新设备的在线时间。
+    _ROUTER_LIST_ADD_DEVICE(p_net,p_raw);
     p_s = _net_session_find(p_net,&recv_rawpkt);
     if( p_s == NULL){
         _net_recv_handle_without_session(p_net,&recv_rawpkt);

@@ -8,7 +8,7 @@
 #include "../../../include/m2m.h"
 #include "../../../include/m2m_api.h"
 #include "../../../include/util.h"
-#include "../../../src/util/m2m_log.h"
+#include "../../../include/m2m_log.h"
 #include "../../../src/network/network.h"
 
 

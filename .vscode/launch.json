@@ -47,7 +47,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/home/derry/github/m2m/bin/app_device",
-            "args": ["1",  "9528", "111", "0" ],
+            "args": ["1",  "9528", "111", "0242ce958eed" "192.168.0.196"  "9527" ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

@@ -14,7 +14,7 @@
 
 #include "../network/network.h"
 #include "../network/m2m/m2m_protocol.h"
-#include "../util/m2m_log.h"
+#include "../../include/m2m_log.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -86,6 +86,10 @@ size_t m2m_net_creat( M2M_id_T *p_id,int port, int key_len, u8 *p_key, M2M_id_T 
     cmd.max_router_tm = 6* (DEFAULT_INTERVAL_PING_TM_MS);
     cmd.hostport =  hostport;
 
+	// printf log 
+	m2m_bytes_dump(">> local id is:", (u8*)&cmd.my, sizeof(M2M_id_T));
+	m2m_bytes_dump(">> local key is:", (u8*)&cmd.enc.p_enckey, cmd.enc.keylen);
+	
     // creat network
     p_n = net_creat(&cmd,0);
     m2m_log_debug("network <%p> have been creat.\n",p_n);
@@ -302,7 +306,7 @@ M2M_Return_T m2m_session_secret_set(M2M_T *p_m2m,int len,u8 *p_data,m2m_func fun
 	_NET_ARG_CPY(arg,p_m2m,func,p_args);
 	
     arg.enc.type = m2m_conf.def_enc_type;
-	p_enc = tmp_key;
+	p_enc = (Enc_T*)tmp_key;
 	p_enc->type = m2m_conf.def_enc_type;
 	p_enc->keylen = ENC_KEY_LEN;
 	klen = (len > ENC_KEY_LEN)?ENC_KEY_LEN:len;

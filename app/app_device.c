@@ -10,7 +10,7 @@
 #include "../include/m2m_type.h"
 #include "../include/m2m.h"
 #include "../include/m2m_api.h"
-#include "../src/util/m2m_log.h"
+#include "../include/m2m_log.h"
 #include "../config/config.h"
 #include "../include/util.h"
 #include "../include/app_implement.h"
@@ -28,9 +28,9 @@ int main(int argc, char **argv){
     int i, ret,keylen;
     M2M_id_T d_id,s_id;
     int dport = 0,sport = 0;
-    u8 p_key[20];
+    u8 p_key[20], id_tmp[64];
     M2M_conf_T dconf;
-    u8 *p_server_host = NULL;
+    u8 *p_server_host = NULL, *p_idtmp = id_tmp, *p_id = (u8*)&d_id;
 
     /******** server config *************/
     dconf.def_enc_type = M2M_ENC_TYPE_AES128;
@@ -54,9 +54,16 @@ int main(int argc, char **argv){
 
     mmemset( (u8*) &d_id,0,sizeof(M2M_id_T));
     mmemset( (u8*) &s_id,0,sizeof(M2M_id_T));
+    mmemset( (u8*) p_idtmp,0, 64);
     // get id
-    STR_2_INT_ARRAY( d_id.id, argv[1], strlen(argv[1]));
-    p_device_id = &d_id;
+    
+	
+	STR_2_INT_ARRAY_ORDER(p_idtmp, argv[1], M_MIN( strlen(argv[1]), 2*ID_LEN) );
+	STR_2_HEX_ARRAY(p_id, p_idtmp, M_MIN( strlen(argv[1]), 2*ID_LEN) );
+	
+
+
+	p_device_id = &d_id;
     // get port 
     dport = atoi(argv[2]);
     // get key
@@ -67,7 +74,10 @@ int main(int argc, char **argv){
     
     if(argc >=6){
     // get server id
-        STR_2_INT_ARRAY( s_id.id, argv[4], strlen(argv[4]));
+	    mmemset( (u8*) p_idtmp,0, 64);
+		p_id = (u8*)&s_id;
+		STR_2_INT_ARRAY_ORDER(p_idtmp, argv[4], M_MIN( strlen(argv[4]), 2*ID_LEN) );
+		STR_2_HEX_ARRAY(p_id, p_idtmp, M_MIN( strlen(argv[4]), 2*ID_LEN) );
     // get server host
         p_server_host = argv[5];
         sport = atoi(argv[6]);
@@ -78,7 +88,7 @@ int main(int argc, char **argv){
     m2m_bytes_dump("\tdevice secret key: ",p_key,16);
 
     if(argc >=6){
-        m2m_bytes_dump("\tdevice id: ",s_id.id, sizeof(M2M_id_T));
+        m2m_bytes_dump("\tserver id: ",s_id.id, sizeof(M2M_id_T));
         m2m_printf("\tserver host %s\n",p_server_host);
         m2m_printf("\tserver port %d\n",sport);
     }
@@ -171,6 +181,6 @@ int m2m_relay_list_dele( void *p_r_list,M2M_id_T *p_id){ return 0;}
 ** output:  NULL.
 ********/
 int m2m_relay_list_update(void **pp,u32 max_tm){  return 0;}
-M2M_Address_T *m2m_relay_id_find( void *p_r_list,M2M_id_T *p_id){ return 0;}
+int m2m_relay_id_find(M2M_Address_T *p_addr, void *p_r_list,M2M_id_T *p_id){ return 0;}
 
 

@@ -10,7 +10,7 @@
 #include "../include/m2m_type.h"
 #include "../include/m2m.h"
 #include "../include/m2m_api.h"
-#include "../src/util/m2m_log.h"
+#include "../include/m2m_log.h"
 #include "../config/config.h"
 #include "../include/util.h"
 #include "../include/app_implement.h"
@@ -105,7 +105,7 @@ M2M_id_T *p_sid;
     }
 
  }
-
+#if 0
 // 保存 key。
 /**********************************************
 ** description: 保存秘钥.每个 net 有一个秘钥。
@@ -118,6 +118,8 @@ int m2m_secretKey_write(size_t addr,u8 *p_key,u16 keylen){
     printf(" >>> flash write key >>> succfully len =%d key : %s !!\t\n", p_enc->keylen,p_enc->key);
     return keylen;
 }
+#endif
+#if 0
 /**********************************************
 ** description: 读取秘钥.
 ** args:    
@@ -126,6 +128,7 @@ int m2m_secretKey_write(size_t addr,u8 *p_key,u16 keylen){
 **          p_key;p_keylen;
 ********/
 u32 m2m_secretKey_read(size_t addr,u8 *p_key,u16 *p_keylen){ return 0;}
+#endif
 /** router 路由*******************************************/
 
 /**********************************************
@@ -168,7 +171,7 @@ int m2m_relay_list_update(void **pp,u32 max_tm){
     return relay_list_update(pp, max_tm);
 }
 
-M2M_Address_T *m2m_relay_id_find( void *p,M2M_id_T *p_id){ 
-    return list_addr_find( p, p_id);
+int m2m_relay_id_find(M2M_Address_T *p_addr, void *p,M2M_id_T *p_id){ 
+    return list_addr_find(p_addr, p, p_id);
 }
 

@@ -71,7 +71,7 @@ int m2m_relay_list_update(void **pp,u32 max_tm){
     return 0;
 }
 
-M2M_Address_T *m2m_relay_id_find( void *p,M2M_id_T *p_id){ 
+int m2m_relay_id_find(M2M_Address_T      *p_addr, void *p,M2M_id_T *p_id){ 
     return 0;
 }
 

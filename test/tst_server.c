@@ -2,7 +2,7 @@
 #include "../include/m2m_type.h"
 #include "../include/m2m.h"
 #include "../include/m2m_api.h"
-#include "../src/util/m2m_log.h"
+#include "../include/m2m_log.h"
 #include "../config/config.h"
 #include "../include/app_implement.h"
 #include "../include/util.h"
@@ -64,6 +64,8 @@
     
     /** config m2m *****/
      M2M_Return_T ret = m2m_int(&conf);
+	m2m_log_init(M2M_LOG, "/tmp/vlog");
+	m2m_log("in server test");
 
      /** server init. creat an server. ********/
      m2m.net = m2m_net_creat( &local_id,SERVER_PORT, strlen(TCONF_SERVER_KEY),(u8*)TCONF_SERVER_KEY, NULL,NULL, 0, (m2m_func)receivehandle,NULL);
@@ -73,6 +75,8 @@
      }
      while(1)
          m2m_trysync(m2m.net);
+	 
+	 m2m_log_uninit();
      return 0;
  }
 // 保存 key。
@@ -137,7 +141,7 @@ int m2m_relay_list_update(void **pp,u32 max_tm){
     return relay_list_update(pp, max_tm);
 }
 
-M2M_Address_T *m2m_relay_id_find( void *p,M2M_id_T *p_id){ 
-    return list_addr_find( p, p_id);
+int m2m_relay_id_find(M2M_Address_T       *p_addr, void *p,M2M_id_T *p_id){ 
+    return list_addr_find(p_addr, p, p_id);
 }
 

@@ -8,7 +8,7 @@ echo "----->runing tst_mutiple_session_client test"
 ../bin/tst_mutiple_session_client
 ret_mult_session=$?
 echo "----->runing tst_mutiple_network_client test"
-../bin/tst_mutiple_network_client
+#../bin/tst_mutiple_network_client
 ret_mult_network=$?
 echo "----->runing tst_logic_client test"
 ../bin/tst_logic_client

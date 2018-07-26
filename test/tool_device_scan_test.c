@@ -5,7 +5,7 @@
 #include "../include/m2m_type.h"
 #include "../include/m2m.h"
 #include "../include/m2m_api.h"
-#include "../src/util/m2m_log.h"
+#include "../include/m2m_log.h"
 #include "../config/config.h"
 #include "../include/app_implement.h"
 #include "../include/util.h"
@@ -188,5 +188,5 @@ int m2m_relay_list_dele( void *p_r_list,M2M_id_T *p_id){ return 0;}
 ********/
 int m2m_relay_list_update(void **pp,u32 max_tm){  return 0;}
 
-M2M_Address_T *m2m_relay_id_find( void *p_r_list,M2M_id_T *p_id){ return 0; }
+int m2m_relay_id_find(M2M_Address_T *p_addr, void *p_r_list,M2M_id_T *p_id){ return 0; }
 

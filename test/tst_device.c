@@ -5,7 +5,7 @@
 #include "../include/m2m_type.h"
 #include "../include/m2m.h"
 #include "../include/m2m_api.h"
-#include "../src/util/m2m_log.h"
+#include "../include/m2m_log.h"
 #include "../config/config.h"
 #include "../include/app_implement.h"
 #include "../include/util.h"
@@ -29,6 +29,8 @@ int loop_count = 0;
 M2M_id_T device_id,server_id;
 void dev_callback(int code,M2M_packet_T **pp_ack_pkt, void *p_r,void *p_arg);
 void *p_obs_node = NULL;
+char *s = "1234";
+char *d[512];
 
 void main(void){
     // 创建 net ， 谅解到远端服务器。
@@ -37,10 +39,9 @@ void main(void){
     M2M_T m2m, h_id;
     M2M_conf_T conf;
     int ret;
-
     device_id.id[ID_LEN -1] = TST_DEV_LOCAL_ID; // 
     mmemset((u8*)&h_id, 0, sizeof(M2M_T));
-    
+	
     conf.def_enc_type = M2M_ENC_TYPE_AES128;
     conf.max_router_tm = 10*60*1000;
     conf.do_relay = 0;
@@ -61,8 +62,6 @@ void main(void){
 			p_obs_node = NULL;
 		}
 #endif
-
-	
     }
     
     m2m_net_destory(m2m.net);
@@ -165,6 +164,6 @@ int m2m_relay_list_dele( void *p_r_list,M2M_id_T *p_id){ return 0;}
 ** output:  NULL.
 ********/
 int m2m_relay_list_update(void **pp,u32 max_tm){  return 0;}
-M2M_Address_T *m2m_relay_id_find( void *p_r_list,M2M_id_T *p_id){ return 0;}
+int m2m_relay_id_find(M2M_Address_T      *p_addr, void *p_r_list,M2M_id_T *p_id){ return 0;}
 
 

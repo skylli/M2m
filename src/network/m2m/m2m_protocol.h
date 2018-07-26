@@ -8,7 +8,7 @@
 #define _M2M_PROTOCOL_H_
 #include "../../../include/m2m.h"
 #include "../../../include/util.h"
-#include "../../util/m2m_log.h"
+#include "../../../include/m2m_log.h"
 
 typedef struct NET_ENC_T{
     Encrypt_type_T type;

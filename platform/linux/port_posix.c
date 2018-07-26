@@ -23,7 +23,7 @@
 
 
 #include "../../include/m2m.h"
-#include "../../src/util/m2m_log.h"
+#include "../../include/m2m_log.h"
 #include "../../src/network/m2m/m2m_endian.h"
 
 typedef struct sockaddr SOCKADDR;

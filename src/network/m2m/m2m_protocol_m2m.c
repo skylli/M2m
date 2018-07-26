@@ -5,7 +5,7 @@
 #include "../../../include/util.h"
 #include "../../../config/config.h"
 #include "../../../include/m2m_port.h"
-#include "../../util/m2m_log.h"
+#include "../../../include/m2m_log.h"
 #include "../../crypt/m2m_crypt.h"
 
 #include "pdu.h"
@@ -427,7 +427,7 @@ static int pkt_receive(M2M_proto_recv_rawpkt_T *p_rawpkt,int flags){
     p_rawpkt->stoken = p_r->stoken;
 	p_rawpkt->ctoken = p_r->ctoken;
     if( p_r->stoken == 0 && p_rawpkt->ctoken == 0 && p_rawpkt->enc_type != M2M_ENC_TYPE_BROADCAST )
-        m2m_debug_level( M2M_LOG_WARN,"NO token !!");
+        m2m_debug_level( M2M_LOG,"NO token !!");
     //m2m_bytes_dump("encoder pdu :", p_r->p_payload,p_r->payloadlen);
 
     DEV_ID_LOG_PRINT( M2M_LOG_DEBUG, p_rawpkt->src_id,"source id "," ---------->\n");

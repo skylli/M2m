@@ -15,7 +15,7 @@
 #include <string.h>
 
 #include "../../include/m2m_type.h"
-#include "../util/m2m_log.h"
+#include "../../include/m2m_log.h"
 #include "aes.h"
 
 

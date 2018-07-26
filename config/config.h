@@ -12,7 +12,7 @@
 /* enable broadcast */
 #define CONF_BROADCAST_ENABLE 
 
-//#define C_HAS_FILE
+#define C_HAS_FILE
 /** timeout  **/
 #define NET_RETRAMIT_TIMOUT_MS  (10000)
 
