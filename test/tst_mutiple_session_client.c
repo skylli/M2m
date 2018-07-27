@@ -26,7 +26,7 @@
 
 
 /***************** 测试配置****************************************************/
-#define TST_MSES_MAX_NET    (200)    // 并行构建的 session 个数.
+#define TST_MSES_MAX_NET    (50)    // 并行构建的 session 个数.
 
 #define TST_MSES_LOCAL_PORT_START      (9510)
 #define TST_MSES_LOCAL_KEY       TCONF_APP_KEY
@@ -148,6 +148,8 @@ int mutiple_cmd_jump_rq(size_t p_net,TST_Mses_item_T *p_ml, int index){
                                                    strlen(TST_MSES_REMOTE_SECRET_KEY), TST_MSES_REMOTE_SECRET_KEY, (m2m_func)test_mses_callback, p_ml);
             if( p_ml->m2m.session){
                 p_ml->respon_indx = p_ml->rq_indx;
+				p_ml->result[TST_MSES_CMD_SESSION_CREAT] = 1;
+				p_ml->rq_indx++;
             }
             break;
         case TST_MSES_CMD_DATA:

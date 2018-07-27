@@ -1716,7 +1716,7 @@ static M2M_Return_T _net_recv_handle( Net_T *p_net){
     recv_rawpkt.socket_fd = p_net->protocol.socket_fd;
     p_raw = &recv_rawpkt;
     if(p_net->protocol.func_proto_ioctl == 0)
-        return M2M_ERR_NOERR;
+		goto RECV_HAND_END;
 // 1. 接收数据.  
     ret = ( p_net->protocol.func_proto_ioctl )( M2M_PROTO_IOC_CMD_RECVPKT_RQ,&recv_rawpkt,0);
     if( ret <= 0 ){

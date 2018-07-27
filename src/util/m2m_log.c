@@ -33,7 +33,7 @@ void current_time_printf(void){
 
 
 
-Log_T log;
+Log_T g_mlog;
 char *time_str()
 {
 	time_t rawtime;
@@ -52,15 +52,15 @@ static void _log_filename_update(){
 	struct tm *p_tm;
 	time(&timep);
 	p_tm = localtime(&timep); //取得当地时间
-	if( log.p_log_path &&  ( !log.fp || 	log.file_index != p_tm->tm_mday ) ){
-		char *p = path + strlen(log.p_log_path); 
-		if(log.fp)
-			fclose(log.fp);
-		mcpy(path, log.p_log_path, strlen(log.p_log_path));
+	if( g_mlog.p_log_path &&  ( !g_mlog.fp || 	g_mlog.file_index != p_tm->tm_mday ) ){
+		char *p = path + strlen(g_mlog.p_log_path); 
+		if(g_mlog.fp)
+			fclose(g_mlog.fp);
+		mcpy(path, g_mlog.p_log_path, strlen(g_mlog.p_log_path));
 		sprintf(p, "%d%02d%02d.log",(1900+p_tm->tm_year), (1+p_tm->tm_mon), p_tm->tm_mday);
 		m2m_printf("creat an new file %s\n", path);
-		log.file_index = p_tm->tm_mday;
-		log.fp = fopen(path, "a");
+		g_mlog.file_index = p_tm->tm_mday;
+		g_mlog.fp = fopen(path, "a");
 	}
 
 	return ;
@@ -86,11 +86,11 @@ void m2m_file_print(int level,const char *fmt, ...){
 	*p = '\n';
     va_end(args);
 	_log_filename_update();
-  	if(level >= log.level){
+  	if(level >= g_mlog.level){
 		m2m_printf("%s",buffer);
-		if(log.fp ){
-			fputs(buffer, log.fp);
-			fflush(log.fp); // flush new
+		if(g_mlog.fp ){
+			fputs(buffer, g_mlog.fp);
+			fflush(g_mlog.fp); // flush new
 		}
    	}
 }
@@ -111,17 +111,17 @@ void m2m_record_init(int level, const char *p_file){
 		char *p = path + strlen(p_file); 
 		mcpy(path, p_file, strlen(p_file));
 		sprintf(p, "%d%02d%02d.log",(1900+p_tm->tm_year), (1+p_tm->tm_mon), p_tm->tm_mday);
-		log.file_index = p_tm->tm_mday;		
-		log.fp = fopen(path, "a");
+		g_mlog.file_index = p_tm->tm_mday;		
+		g_mlog.fp = fopen(path, "a");
 	}
 	
     g_log_level = level;	
-	log.err_cnt = 0;
-    log.warn_cnt = 0;
-    log.level = level;
-	log.p_log_path = mmalloc(strlen(p_file) +1);
-	if(log.p_log_path ){
-		mcpy(log.p_log_path, p_file, strlen(p_file));
+	g_mlog.err_cnt = 0;
+    g_mlog.warn_cnt = 0;
+    g_mlog.level = level;
+	g_mlog.p_log_path = mmalloc(strlen(p_file) +1);
+	if(g_mlog.p_log_path ){
+		mcpy(g_mlog.p_log_path, p_file, strlen(p_file));
 	}
 }
 #if 0
@@ -145,10 +145,10 @@ void m2m_record_error(const char *fmt, ...){
 ** 1.close log file,if no log file then do nothing.
 */
 void m2m_record_uninit(void){
-    if(log.fp)
-        fclose(log.fp);
-	mfree(log.p_log_path);
-    mmemset( (u8*)&log,0,sizeof(Log_T));
+    if(g_mlog.fp)
+        fclose(g_mlog.fp);
+	mfree(g_mlog.p_log_path);
+    mmemset( (u8*)&g_mlog,0,sizeof(Log_T));
 }
 #endif // C_HAS_FILE
 

@@ -40,7 +40,7 @@ typedef struct LOG_T{
 
 extern u8 g_log_level;
 
-extern Log_T log;
+extern Log_T g_mlog;
 #define __FILENAME__ (strrchr(__FILE__, '/')? strrchr(__FILE__, '/') + 1 : __FILE__) 
 #ifdef LOG_VERBOSE
 

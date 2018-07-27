@@ -6,9 +6,9 @@
 #define TCONF_NOTIFY_DATA1	"notify test data111"
 
 
-#define TCONF_DEVICE_PORT (9529)
-#define TCONF_APP_PORT (9528)
-#define TCONF_SERVER_PORT (9527)
+#define TCONF_DEVICE_PORT (9519)
+#define TCONF_APP_PORT (9518)
+#define TCONF_SERVER_PORT (9517)
 #define TCONF_HOST ("192.168.0.196")
 #define TCONF_INTERVAL_PING_TM_MS  (10*1000)
 

@@ -172,7 +172,10 @@ int mutiple_cmd_jump_rq( TST_Mnet_item_T *p_ml, int index){
             p_ml->m2m.session = m2m_session_creat( p_ml->m2m.net, &remote_id, (u8*)TST_MNET_REMOTE_HOST, TST_MNET_REMOTE_PORT,\
                                                    strlen(TST_MNET_REMOTE_SECRET_KEY), (u8*)TST_MNET_REMOTE_SECRET_KEY,(m2m_func)test_mnet_callback, p_ml);
             if( p_ml->m2m.session){
+                p_ml->result[TST_MNET_CMD_SESSION_CREAT] = 1;
                 p_ml->respon_indx = p_ml->rq_indx;
+                p_ml->rq_indx++;
+
             }
             break;
         case TST_MNET_CMD_DATA:
